@@ -1,0 +1,45 @@
+﻿using System;
+using System.Windows.Forms;
+
+namespace RTLSpectrumAnalyzerGUI
+{
+    public partial class quickStartForm : Form
+    {
+        Form1 mainForm;
+
+        public quickStartForm(Form1 mainForm)
+        {
+            this.mainForm = mainForm;
+
+            InitializeComponent();
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            if (checkBox10.Checked)
+                mainForm.LoadData("session.rtl");                
+            else
+            {
+                mainForm.textBox1.Text = textBox1.Text;
+                mainForm.textBox2.Text = textBox2.Text;
+                mainForm.textBox3.Text = textBox3.Text;
+
+                mainForm.button4.PerformClick();
+            }            
+
+            mainForm.button5.PerformClick();
+
+            this.Hide();
+        }
+
+        private void checkBox10_CheckedChanged(object sender, EventArgs e)
+        {
+            if (checkBox10.Checked)
+            {
+                textBox1.Enabled = textBox2.Enabled  = textBox3.Enabled = false;
+            }
+            else
+                textBox1.Enabled = textBox2.Enabled = textBox3.Enabled = true;
+        }
+    }
+}

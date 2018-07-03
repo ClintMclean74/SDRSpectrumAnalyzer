@@ -1,0 +1,12 @@
+LIBRARY	"RTLSDRDevice"
+EXPORTS   
+   GetConnectedDevicesCount @1
+   Initialize @2
+   GetBufferSize @3
+   GetTotalADCValue @4
+   GetBins @5
+   GetBinsForDevices @6
+   ScanAndGetTotalADCMagnitudeForFrequency @7
+   GetTotalMagnitude @8
+   GetAvgMagnitude @9
+   SetUseDB @10

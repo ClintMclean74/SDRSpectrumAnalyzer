@@ -1,0 +1,7 @@
+*.ncb
+*.sdf
+*.idb
+*.tlog
+*.exp
+**/debug
+**/release
