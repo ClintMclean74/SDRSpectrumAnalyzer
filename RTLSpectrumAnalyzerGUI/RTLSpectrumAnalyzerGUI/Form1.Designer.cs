@@ -418,6 +418,7 @@
             this.button6.TabIndex = 16;
             this.button6.Text = "Load Near Series Data";
             this.button6.UseVisualStyleBackColor = true;
+            this.button6.Visible = false;
             this.button6.Click += new System.EventHandler(this.button6_Click);
             // 
             // button7
@@ -429,6 +430,7 @@
             this.button7.TabIndex = 15;
             this.button7.Text = "Load Far Series Data";
             this.button7.UseVisualStyleBackColor = true;
+            this.button7.Visible = false;
             this.button7.Click += new System.EventHandler(this.button7_Click);
             // 
             // button8
