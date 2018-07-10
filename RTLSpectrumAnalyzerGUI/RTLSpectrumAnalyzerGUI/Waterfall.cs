@@ -468,12 +468,16 @@ namespace RTLSpectrumAnalyzerGUI
 
             ////double ratio = dif / strength2;
 
-            double ratio = dif / array1[frequencyIndex];
+            ////double ratio = dif / array1[frequencyIndex];
+
+            double ratio = array2[frequencyIndex] / array1[frequencyIndex] * 100;
+            
 
 
             ////return ratio * Math.Abs(strength2) + ratio * (Math.Abs(strength2) /100);
 
-            return Math.Abs(dif) + ratio * Form1.series2Max * 0.01;
+            ////////return Math.Abs(dif) + ratio * Form1.series2Max * 0.01;
+            return ratio;
         }
 
         static public double CalculateStrengthDifference2(float[] array1, float[] array2, long frequencyIndex)

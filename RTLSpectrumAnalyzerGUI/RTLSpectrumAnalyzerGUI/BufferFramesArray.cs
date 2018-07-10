@@ -10,6 +10,7 @@ namespace RTLSpectrumAnalyzerGUI
         public long frequency;
         public double strength;
         public long transitions;
+        public int ranking = -1;
 
         public TransitionGradient(long frequency, long index, double strength, long transitions)
         {
@@ -46,7 +47,7 @@ namespace RTLSpectrumAnalyzerGUI
             return array.Count;
         }
 
-        public TransitionGradient GetTransitionGradientForFrequency(long frequency, double tolerance)
+        public TransitionGradient GetTransitionGradientForFrequency(long frequency, double tolerance=100)
         {
             long min = 999999999;
             long dif;
@@ -64,8 +65,12 @@ namespace RTLSpectrumAnalyzerGUI
                 }
             }
 
-            if (minIndex>-1 && min <= tolerance)
+            if (minIndex > -1 && min <= tolerance)
+            {
+                array[minIndex].ranking = minIndex;
+
                 return array[minIndex];
+            }
             
             return null;
         }
@@ -128,9 +133,13 @@ namespace RTLSpectrumAnalyzerGUI
 
         public bool EvaluateWhetherReradiatedFrequencyRange()
         {
+            /*////
             possibleReradiatedFrequencyRange = transitionBufferFrames.EvaluateWhetherReradiatedFrequencyRange();
 
             return possibleReradiatedFrequencyRange;
+            */
+
+            return true;
         }
 
         public void Flush(BinData farSeries, BinData nearSeries, BinData indeterminateSeries)
@@ -154,6 +163,11 @@ namespace RTLSpectrumAnalyzerGUI
 
             bufferFrames.LoadData(reader);
             transitionBufferFrames.LoadData(reader);
+        }
+
+        public void Change(BinDataMode prevMode, BinDataMode newMode)
+        {
+            bufferFrames.Change(prevMode, newMode);
         }
     }
 
@@ -234,7 +248,7 @@ namespace RTLSpectrumAnalyzerGUI
 
             for (int i = startIndex; i < bufferFramesObjects.Count; i++)
             {
-                if (frequency >= bufferFramesObjects[i].lowerFrequency && frequency <= bufferFramesObjects[i].upperFrequency)
+                if (frequency >= bufferFramesObjects[i].lowerFrequency && frequency < bufferFramesObjects[i].upperFrequency)
                 {
                     return bufferFramesObjects[i];
                 }
@@ -258,7 +272,7 @@ namespace RTLSpectrumAnalyzerGUI
 
             for (int i = startIndex; i < bufferFramesObjects.Count; i++)
             {
-                if (bufferFramesObjects[i].possibleReradiatedFrequencyRange)
+                ////if (bufferFramesObjects[i].possibleReradiatedFrequencyRange)
                 {
                     transitionGradientArrayZoomed = bufferFramesObjects[i].transitionBufferFrames.GetStrongestTransitionsGradientFrequency();
 
@@ -267,6 +281,14 @@ namespace RTLSpectrumAnalyzerGUI
             }
 
             return transitionGradientArray;
+        }
+
+        public void Change(BinDataMode prevMode, BinDataMode newMode)
+        {
+            for (int i = 0; i < bufferFramesObjects.Count; i++)
+            {
+                bufferFramesObjects[i].Change(prevMode, newMode);
+            }
         }
 
         public void Clear()

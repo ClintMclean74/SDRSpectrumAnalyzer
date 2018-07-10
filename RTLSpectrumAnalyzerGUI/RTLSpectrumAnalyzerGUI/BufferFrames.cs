@@ -8,7 +8,7 @@ namespace RTLSpectrumAnalyzerGUI
     {
         public List<BufferFrame> bufferFramesArray = new List<BufferFrame>();
 
-        public List<BufferFrame> currentTransitionBufferFramesArray = new List<BufferFrame>();        
+        public List<BufferFrame> currentTransitionBufferFramesArray = new List<BufferFrame>();
 
         public List<GradientArray> gradients = new List<GradientArray>();
 
@@ -18,17 +18,22 @@ namespace RTLSpectrumAnalyzerGUI
 
         public const uint TRANSITION_LENGTH = 8 * 1000;
 
-        #if DEBUG
-        public const long BUFFER_TIME_LENGTH = 30 * 1000;
+        #if (SDR_DEBUG)
+            public const long BUFFER_TIME_LENGTH = 30 * 1000;        
+            public const long TIME_DELAY_BEFORE_ZOOMING = 10 * 1000;
         #else
-        public const long BUFFER_TIME_LENGTH = 60 * 1000;        
+            public const long BUFFER_TIME_LENGTH = 60 * 1000;
+            public const long TIME_DELAY_BEFORE_ZOOMING = 60 * 1000;
         #endif
 
         public const long MIN_ZOOMED_IN_TRANSISTION_FRAMES = 4;        
 
-        public const double MIN_NEAR_FAR_RATIO_FOR_RERADIATED_FREQUENCY = 1.05;
+        public const double MIN_NEAR_FAR_PERCENTAGE_FOR_RERADIATED_FREQUENCY = 105;
 
         public const long FREQUENCY_SEGMENT_SIZE = 100000;
+
+
+
 
         public int currentBufferIndex = -1;
         public int startBufferIndex = 0;
@@ -398,7 +403,8 @@ namespace RTLSpectrumAnalyzerGUI
 
                     for (long j = i; j < segmentEnd && j < bufferFramesArray[0].bufferArray.Length; j++)
                     {
-                        transitionsStrengthArray = GetStrengthOverTimeForIndex(j);                        
+                        transitionsStrengthArray = GetAveragedStrengthOverTimeForIndex(j);
+                        ////transitionsStrengthArray = GetStrengthOverTimeForIndex(j);                        
 
                         gradientStrength = SignalDataUtilities.Series2ndVS1stHalfAvgStrength(transitionsStrengthArray);
                         
@@ -447,7 +453,7 @@ namespace RTLSpectrumAnalyzerGUI
 
         public bool EvaluateWhetherReradiatedFrequencyRange()
         {
-            if (gradients.Count>0)
+            /*////if (gradients.Count>0)
             {
                 bool[] possibleReradiatedFrequency = new bool[gradients[0].gradientArray.Length];
 
@@ -458,7 +464,7 @@ namespace RTLSpectrumAnalyzerGUI
                 {
                     for (int j = 0; j < gradients[i].gradientArray.Length; j++)
                     {
-                        if (gradients[i].gradientArray[j].strength < BufferFrames.MIN_NEAR_FAR_RATIO_FOR_RERADIATED_FREQUENCY)
+                        if (gradients[i].gradientArray[j].strength < BufferFrames.MIN_NEAR_FAR_PERCENTAGE_FOR_RERADIATED_FREQUENCY)
                         {
                             possibleReradiatedFrequency[j] = false;
                         }
@@ -475,23 +481,47 @@ namespace RTLSpectrumAnalyzerGUI
                         if (i == 0)
                             gradientForTransition = gradients[i].gradientArray[j].strength;
                         else
-                            gradientForTransition = gradients[i].gradientArray[j].strength * (i + 1) /*gradients[i].gradientArray[j].stackedFrames*/ - gradients[i - 1].gradientArray[j].strength * i /*gradients[i-1].gradientArray[j].stackedFrames*/;
+                            gradientForTransition = gradients[i].gradientArray[j].strength * (i + 1) /*gradients[i].gradientArray[j].stackedFrames*/ /*////- gradients[i - 1].gradientArray[j].strength * i /*gradients[i-1].gradientArray[j].stackedFrames*/;
 
-                        if (gradientForTransition < BufferFrames.MIN_NEAR_FAR_RATIO_FOR_RERADIATED_FREQUENCY)
+            /*                        if (gradientForTransition < BufferFrames.MIN_NEAR_FAR_PERCENTAGE_FOR_RERADIATED_FREQUENCY)
+                                    {
+                                        possibleReradiatedFrequency[j] = false;
+                                    }
+                                }
+                            }
+
+
+                            int negativeGradientCount = 0;
+                            for (int i = 0; i < gradients[0].gradientArray.Length; i++)
+                                if (!possibleReradiatedFrequency[i])
+                                    negativeGradientCount++;
+
+                            if (negativeGradientCount == gradients[0].gradientArray.Length)
+                                return false;
+                        }
+
+                        return true;
+                        */
+
+            if (gradients.Count > 0)
+            {
+                int negativeGradientCount;
+
+                for (int i = 0; i < gradients.Count; i++)
+                {
+                    negativeGradientCount = 0;
+
+                    for (int j = 0; j < gradients[i].gradientArray.Length; j++)
+                    {
+                        if (gradients[i].gradientArray[j].strength < BufferFrames.MIN_NEAR_FAR_PERCENTAGE_FOR_RERADIATED_FREQUENCY)
                         {
-                            possibleReradiatedFrequency[j] = false;
+                            negativeGradientCount++;
                         }
                     }
+
+                    if (negativeGradientCount == gradients[0].gradientArray.Length)
+                        return false;
                 }
-
-
-                int negativeGradientCount = 0;
-                for (int i = 0; i < gradients[0].gradientArray.Length; i++)
-                    if (!possibleReradiatedFrequency[i])
-                        negativeGradientCount++;
-
-                if (negativeGradientCount == gradients[0].gradientArray.Length)
-                    return false;
             }
 
             return true;
@@ -592,6 +622,26 @@ namespace RTLSpectrumAnalyzerGUI
                     }
                 }
             }
+        }        
+
+        public uint GetFramesCountForFrequencyRegion(long lowerFrequency, long upperFrequency, BinDataMode mode)
+        {
+            BufferFramesObject zoomedOutBufferObject = mainForm.bufferFramesArray.GetBufferFramesObject(0);
+
+            long lowerIndex = (long)((lowerFrequency - zoomedOutBufferObject.lowerFrequency) / mainForm.binSize);
+            long upperIndex = (long)((upperFrequency - zoomedOutBufferObject.lowerFrequency) / mainForm.binSize);
+
+            uint frames = 0;
+
+            for (long i = lowerIndex; i < upperIndex; i++)
+            {
+                if (bufferFramesArray[(int)i].mode == mode)
+                {
+                    frames++;
+                }
+            }
+
+            return frames;
         }
 
         public uint GetFramesCount(BinDataMode mode)

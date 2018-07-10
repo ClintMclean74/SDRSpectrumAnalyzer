@@ -23,8 +23,6 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-////#define DEBUG
-
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -37,7 +35,11 @@ using System.Threading.Tasks;
 namespace RTLSpectrumAnalyzerGUI
 {
     public partial class Form1 : Form
-    {        
+    {
+        enum ProgramState {AQUIRING_NEAR_FAR_FRAMES, ANALYZING_TRANSITIONS};
+
+        ProgramState programState = ProgramState.AQUIRING_NEAR_FAR_FRAMES;
+
         public const bool PROXIMITRY_DETECTOR = false;
         public static long MAXIMUM_GRAPH_BIN_COUNT = 100000;
 
@@ -78,6 +80,7 @@ namespace RTLSpectrumAnalyzerGUI
         public bool startRecordingSeries2 = false;
 
         public long recordingSeries1Start = -1;
+        public long recordingSeries2Start = -1;
 
 
         float[] difBinArray = null;
@@ -192,50 +195,84 @@ namespace RTLSpectrumAnalyzerGUI
 
         long userSelectedFrequencyForAnalysis=-1;
 
-        #if DEBUG
-        public const long REQUIRED_FRAMES_BEFORE_ANALYZING_TRANSISTIONS = 4;
+        #if SDR_DEBUG
+            public const long REQUIRED_FRAMES_BEFORE_ANALYZING_TRANSISTIONS = 4;
+            public const long REQUIRED_ZOOMED_FRAMES_FOR_TRANSITIONS = 1000;
         #else
-        public const long REQUIRED_FRAMES_BEFORE_ANALYZING_TRANSISTIONS = 100;
+            public const long REQUIRED_FRAMES_BEFORE_ANALYZING_TRANSISTIONS = 100;
+            public const long REQUIRED_ZOOMED_FRAMES_FOR_TRANSITIONS = 1000;
         #endif
 
         TransitionGradientArray transitionGradientArray;
 
-        public static bool DEBUG = true;
-
-        private void ZoomOutOfFrequency()
+        public bool zoomingAnalysis = true;
+        
+        public long GetAverageNumberOfFramesForFrequencyRegion(BinData binData, BinDataMode binDataMode, long lowerFrequency, long upperFrequency, long dataLowerFrequency, double binSize)
         {
-            commandBuffer.AddCommand("ZoomOutOfFrequency");
+            BufferFramesObject zoomedOutBufferObject = bufferFramesArray.GetBufferFramesObject(0);
+            BufferFramesObject bufferFramesObject = mainForm.bufferFramesArray.GetBufferFramesObject(lowerFrequency, upperFrequency);
 
-            chart1.Series["Far Series"].Points.Clear();
-            chart2.Series["Far Series"].Points.Clear();
+            long frames = (long)binData.GetAverageNumberOfFramesForFrequencyRegion(bufferFramesObject.lowerFrequency, bufferFramesObject.upperFrequency, dataLowerFrequency, binSize);
 
-            analyzingNearFarTransitions = false;
+            if (zoomedOutBufferObject!= bufferFramesObject)
+                frames += zoomedOutBufferObject.bufferFrames.GetFramesCount(binDataMode);
 
-            automatedZooming = true;
+            frames += bufferFramesObject.bufferFrames.GetFramesCount(binDataMode);
 
-            button24.Enabled = false;
+            if (binDataMode == BinDataMode.Near)
+            {
+                if (zoomedOutBufferObject != bufferFramesObject)
+                    frames += zoomedOutBufferObject.bufferFrames.GetFramesCount(BinDataMode.Indeterminate);
 
-            bufferFramesArray.Flush(series1BinData, series2BinData, series1BinData);
+                frames += bufferFramesObject.bufferFrames.GetFramesCount(BinDataMode.Indeterminate);
+            }
 
+
+            return frames;
+        }
+
+        private bool ZoomOutOfFrequency()
+        {
             BufferFramesObject zoomedOutBufferObject = bufferFramesArray.GetBufferFramesObject(0);
 
-            textBox1.Text = zoomedOutBufferObject.lowerFrequency.ToString();
-            textBox2.Text = zoomedOutBufferObject.upperFrequency.ToString();
+            ////if (!automatedZooming || (/*////GetAverageNumberOfFramesForFrequencyRegion(series2BinData, BinDataMode.Near, currentBufferFramesObject.lowerFrequency, currentBufferFramesObject.upperFrequency, zoomedOutBufferObject.lowerFrequency, binSize) >= REQUIRED_ZOOMED_FRAMES_FOR_TRANSITIONS && */GetAverageNumberOfFramesForFrequencyRegion(series1BinData, BinDataMode.Far, currentBufferFramesObject.lowerFrequency, currentBufferFramesObject.upperFrequency, zoomedOutBufferObject.lowerFrequency, binSize) >= REQUIRED_ZOOMED_FRAMES_FOR_TRANSITIONS))
+            if (!automatedZooming || (GetAverageNumberOfFramesForFrequencyRegion(series2BinData, BinDataMode.Near, currentBufferFramesObject.lowerFrequency, currentBufferFramesObject.upperFrequency, zoomedOutBufferObject.lowerFrequency, binSize) >= REQUIRED_ZOOMED_FRAMES_FOR_TRANSITIONS || GetAverageNumberOfFramesForFrequencyRegion(series1BinData, BinDataMode.Far, currentBufferFramesObject.lowerFrequency, currentBufferFramesObject.upperFrequency, zoomedOutBufferObject.lowerFrequency, binSize) >= REQUIRED_ZOOMED_FRAMES_FOR_TRANSITIONS))
+            {
+                commandBuffer.AddCommand("ZoomOutOfFrequency");
 
-            if (button3.Text == "Stop Recording")
-                button3.PerformClick();
-            else
-                if (button5.Text == "Stop Recording")
-                button5.PerformClick();
+                chart1.Series["Far Series"].Points.Clear();
+                chart2.Series["Far Series"].Points.Clear();
 
-            startRecordingSeries2 = true;
+                analyzingNearFarTransitions = false;
 
-            eventTimer = new System.Windows.Forms.Timer();
+                automatedZooming = true;
 
-            eventTimer.Tick += new EventHandler(NewSettingsThread);
-            eventTimer.Interval = 1000;
+                button24.Enabled = false;
 
-            eventTimer.Start();
+                bufferFramesArray.Flush(series1BinData, series2BinData, series1BinData);                
+
+                textBox1.Text = zoomedOutBufferObject.lowerFrequency.ToString();
+                textBox2.Text = zoomedOutBufferObject.upperFrequency.ToString();
+
+                if (button3.Text == "Stop Recording")
+                    button3.PerformClick();
+                else
+                    if (button5.Text == "Stop Recording")
+                    button5.PerformClick();
+
+                startRecordingSeries2 = true;
+
+                eventTimer = new System.Windows.Forms.Timer();
+
+                eventTimer.Tick += new EventHandler(NewSettingsThread);
+                eventTimer.Interval = 1000;
+
+                eventTimer.Start();
+
+                return true;
+            }
+
+            return false;
         }
 
         private void InitializeZoomToFrequencyThread()
@@ -278,7 +315,7 @@ namespace RTLSpectrumAnalyzerGUI
         {
             if (leaderBoardSignals.Count > 0)
             {
-                int secondOptionLeaderBoardSignalIndex = -1;
+                int secondOptionLeaderBoardSignalIndex = -1, thirdOptionLeaderBoardSignalIndex = -1;
 
                 if (currentLeaderBoardSignalIndex < 0)
                     currentLeaderBoardSignalIndex++;
@@ -289,28 +326,48 @@ namespace RTLSpectrumAnalyzerGUI
                 Utilities.FrequencyRange frequencyRange;
                 BufferFramesObject bufferFramesObject = null;
 
+                long framesForRegion;
+
                 while (currentLeaderBoardSignalIndex < MAX_LEADER_BOARD_LIST_COUNT && currentLeaderBoardSignalIndex < leaderBoardSignals.Count)
                 {
                     frequencyRange = Utilities.GetFrequencyRangeFromFrequency((long)leaderBoardSignals[currentLeaderBoardSignalIndex].frequency);
 
-                    bufferFramesObject = bufferFramesArray.GetBufferFramesObject((long)frequencyRange.lower, (long)frequencyRange.upper);
+                    bufferFramesObject = bufferFramesArray.GetBufferFramesObject((long)frequencyRange.lower, (long)frequencyRange.upper);                    
 
                     if (bufferFramesObject != null)
                     {
+                        if (recordingSeries1)
+                            framesForRegion = GetAverageNumberOfFramesForFrequencyRegion(series1BinData, BinDataMode.Far, bufferFramesObject.lowerFrequency, bufferFramesObject.upperFrequency, dataLowerFrequency, binSize);
+                        else
+                            framesForRegion = GetAverageNumberOfFramesForFrequencyRegion(series2BinData, BinDataMode.Near, bufferFramesObject.lowerFrequency, bufferFramesObject.upperFrequency, dataLowerFrequency, binSize);
+
                         if (!bufferFramesObject.possibleReradiatedFrequencyRange)
                             currentLeaderBoardSignalIndex++;
                         else
-                        if (bufferFramesObject.transitionBufferFrames.transitions >= BufferFrames.MIN_ZOOMED_IN_TRANSISTION_FRAMES && currentLeaderBoardSignalIndex < MAX_LEADER_BOARD_LIST_COUNT)
+                        if (bufferFramesObject.transitionBufferFrames.transitions >= BufferFrames.MIN_ZOOMED_IN_TRANSISTION_FRAMES)//// && currentLeaderBoardSignalIndex < MAX_LEADER_BOARD_LIST_COUNT)
                         {
                             currentLeaderBoardSignalIndex++;
                         }
                         else
+                        if (framesForRegion > REQUIRED_ZOOMED_FRAMES_FOR_TRANSITIONS)
                         {
-                            if (bufferFramesObject.transitionBufferFrames.bufferFramesArray.Count > 0 && bufferFramesObject.transitionBufferFrames.GetStrongestTransitionsGradientFrequency().array[0].strength < 0)
-                            {
+                            if (secondOptionLeaderBoardSignalIndex == -1)
                                 secondOptionLeaderBoardSignalIndex = currentLeaderBoardSignalIndex;
+
+                            currentLeaderBoardSignalIndex++;
+                        }
+                        else
+                        {
+                            if (bufferFramesObject.transitionBufferFrames.bufferFramesArray.Count > 0 && bufferFramesObject.transitionBufferFrames.GetStrongestTransitionsGradientFrequency().array[0].strength < 0 && thirdOptionLeaderBoardSignalIndex==-1)
+                            {
+                                thirdOptionLeaderBoardSignalIndex = currentLeaderBoardSignalIndex;
+
                                 currentLeaderBoardSignalIndex++;
                             }
+                            /*////else if (GetAverageNumberOfFramesForFrequencyRegion(series1BinData, BinDataMode.Far, bufferFramesObject.lowerFrequency, bufferFramesObject.upperFrequency, dataLowerFrequency, binSize)> REQUIRED_ZOOMED_FRAMES_FOR_TRANSITIONS && zoomingAnalysis)
+                            {
+                                currentLeaderBoardSignalIndex++;
+                            }*/
                             else
                             {
                                 break;
@@ -323,33 +380,52 @@ namespace RTLSpectrumAnalyzerGUI
                     }
                 }
 
-                if (currentLeaderBoardSignalIndex < MAX_LEADER_BOARD_LIST_COUNT)
-                    ZoomToFrequency((long)leaderBoardSignals[currentLeaderBoardSignalIndex].frequency);
-                else
-                    if (secondOptionLeaderBoardSignalIndex > -1)
-                    ZoomToFrequency((long)leaderBoardSignals[secondOptionLeaderBoardSignalIndex].frequency);
-                else
+                if (currentLeaderBoardSignalIndex < MAX_LEADER_BOARD_LIST_COUNT && currentLeaderBoardSignalIndex < leaderBoardSignals.Count)
                 {
-                    notifyIcon2.Icon = SystemIcons.Exclamation;
+                    programState = ProgramState.AQUIRING_NEAR_FAR_FRAMES;
 
-                    notifyIcon2.BalloonTipTitle = "Transitions Analysis";
-                    notifyIcon2.BalloonTipText = "Leaderboard signals analayzed for " + BufferFrames.MIN_ZOOMED_IN_TRANSISTION_FRAMES + " or more transitions";
+                    ZoomToFrequency((long)leaderBoardSignals[currentLeaderBoardSignalIndex].frequency);
+                }
+                else if (recordingSeries1)
+                {
+                    programState = ProgramState.ANALYZING_TRANSITIONS;
 
-                    notifyIcon2.Visible = true;
+                    if (secondOptionLeaderBoardSignalIndex > -1)
+                    {
+                        currentLeaderBoardSignalIndex = secondOptionLeaderBoardSignalIndex;
+                        ZoomToFrequency((long)leaderBoardSignals[currentLeaderBoardSignalIndex].frequency);
+                    }
+                    else
+                    if (thirdOptionLeaderBoardSignalIndex > -1)
+                    {
+                        currentLeaderBoardSignalIndex = thirdOptionLeaderBoardSignalIndex;
+                        ZoomToFrequency((long)leaderBoardSignals[currentLeaderBoardSignalIndex].frequency);
+                    }
+                    else
+                    {
+                        notifyIcon2.Icon = SystemIcons.Exclamation;
 
-                    notifyIcon2.ShowBalloonTip(10000);
+                        notifyIcon2.BalloonTipTitle = "Transitions Analysis";
+                        notifyIcon2.BalloonTipText = "Leaderboard signals analayzed for " + BufferFrames.MIN_ZOOMED_IN_TRANSISTION_FRAMES + " or more transitions";
 
-                    Random rnd = new Random();
-                    int index = rnd.Next(MAX_LEADER_BOARD_LIST_COUNT);
+                        notifyIcon2.Visible = true;
 
-                    ZoomToFrequency((long)leaderBoardSignals[index].frequency);
+                        notifyIcon2.ShowBalloonTip(10000);
+
+                        Random rnd = new Random();
+
+                        currentLeaderBoardSignalIndex = rnd.Next(Math.Min(leaderBoardSignals.Count, MAX_LEADER_BOARD_LIST_COUNT));
+
+                        ZoomToFrequency((long)leaderBoardSignals[currentLeaderBoardSignalIndex].frequency);
+                    }
                 }
             }
         }
 
         private void ZoomToFrequency(long frequency)
         {
-            if (recordingSeries1 || !automatedZooming)
+            ////if (recordingSeries1 || !automatedZooming)
+            if (recordingSeries1 || recordingSeries2 || !automatedZooming)
             {
                 Command command = commandBuffer.GetMostRecentCommand();
 
@@ -468,33 +544,54 @@ namespace RTLSpectrumAnalyzerGUI
                             graphPoint1.Label = "";
                         }
 
-                        if (interestingSignals != null && dataSeries == "Strength Difference")
+
+                        if (checkBox10.Checked)
                         {
-                            for (int j = (int)index; j < (int)(index + inc); j++)
+                            if (interestingSignals != null && dataSeries == "Strength Difference")
                             {
-                                interestingSignalIndex = interestingSignals.FindIndex(x => x.index == j);
-
-                                if (interestingSignalIndex >= 0 && interestingSignalIndex < 4)
+                                for (int j = (int)index; j < (int)(index + inc); j++)
                                 {
-                                    interestingSignal = interestingSignals[interestingSignalIndex];
+                                    interestingSignalIndex = interestingSignals.FindIndex(x => x.index == j);
 
-                                    if (checkBox8.Checked)
+                                    if (interestingSignalIndex >= 0 && interestingSignalIndex < 4)
                                     {
-                                        if (graphPoint1 != null)
+                                        interestingSignal = interestingSignals[interestingSignalIndex];
+
+                                        if (checkBox8.Checked)
                                         {
-                                            graphPoint1.Label = Utilities.GetFrequencyString(binFrequency);
-
-                                            graphPoint1.LabelForeColor = Waterfall.colors[(int)((float)interestingSignalIndex / 4 * (Waterfall.colors.Count - 1))];
+                                            if (graphPoint1 != null)
+                                            {
+                                                graphPoint1.Label = Utilities.GetFrequencyString(binFrequency);
+                                                
+                                                graphPoint1.LabelForeColor = Waterfall.colors[(int)((float)interestingSignalIndex / 4 * (Waterfall.colors.Count - 1))];
+                                            }
                                         }
-                                    }
 
-                                    break;
+                                        break;
+                                    }
                                 }
                             }
                         }
+                        else
+                        if (checkBox12.Checked && transitionGradientArray!=null)
+                        {                            
+                                if (graphPoint1 != null)
+                                {                                    
+                                    TransitionGradient transitionGradient = transitionGradientArray.GetTransitionGradientForFrequency((long)binFrequency, binSize / 10);
+
+                                    if (transitionGradient != null)
+                                    {
+                                        if (transitionGradient.ranking >= 0 && transitionGradient.ranking < 4)
+                                        {
+                                            graphPoint1.Label = Utilities.GetFrequencyString(binFrequency);
+                                            graphPoint1.LabelForeColor = Waterfall.colors[(int)((float)transitionGradient.ranking / 4 * (Waterfall.colors.Count - 1))];
+                                        }
+                                    }
+                                }
+                        }
 
 
-                        if (i > 0)
+                        if (i >= 0)
                         {
                             if (value < minY)
                             {
@@ -503,7 +600,7 @@ namespace RTLSpectrumAnalyzerGUI
                                 minYIndex = i;
                             }
 
-                            if (value > maxY && index > 0)
+                            if (value > maxY)//// && index > 0)
                             {
                                 maxY = value;
 
@@ -536,7 +633,8 @@ namespace RTLSpectrumAnalyzerGUI
 
                     avgStrength /= valueCount;
 
-                    chart.ChartAreas[0].AxisX.ScaleView.Zoom(1, lowerResGraphBinCount - 1);
+                    ////chart.ChartAreas[0].AxisX.ScaleView.Zoom(1, lowerResGraphBinCount - 1);
+                    chart.ChartAreas[0].AxisX.ScaleView.Zoom(0, lowerResGraphBinCount - 1);
 
                     if (chart == chart1)
                     {
@@ -632,7 +730,8 @@ namespace RTLSpectrumAnalyzerGUI
 
                 RangeChanged(chart, dataSeries, data, lowerIndex, upperIndex, lowerFrequency, ref graphBinFreqInc);
 
-                if ((dataSeries == "Far Series" || dataSeries == "Near Series") && (recordingSeries1 || recordingSeries2))
+                if (series1BinData != null && series2BinData != null)
+                if ((dataSeries == "Far Series" || dataSeries == "Near Series"))//// && (recordingSeries1 || recordingSeries2))
                 {
                     if (chart == chart1)
                     {
@@ -835,6 +934,13 @@ namespace RTLSpectrumAnalyzerGUI
             if (binData.binArray.Length == 0)
                 binData = new BinData(totalBinCount, binData.dataSeries, binData.mode);
 
+            BufferFramesObject zoomedOutBufferObject = bufferFramesArray.GetBufferFramesObject(0);
+
+            if (currentBufferFramesObject != zoomedOutBufferObject)
+                analyzingNearFarTransitions = true;
+            else
+                analyzingNearFarTransitions = false;
+
             averageCurrentFrameStrength = 0;
 
             averageTotalFramesStrength = 0;
@@ -844,9 +950,7 @@ namespace RTLSpectrumAnalyzerGUI
             long lowerIndex;
             long upperIndex;
 
-            int i = 0;
-
-            BufferFramesObject zoomedOutBufferObject = bufferFramesArray.GetBufferFramesObject(0);
+            int i = 0;           
 
             lowerIndex = (long)((currentBufferFramesObject.lowerFrequency - zoomedOutBufferObject.lowerFrequency) / binSize);
             upperIndex = (long)((currentBufferFramesObject.upperFrequency - zoomedOutBufferObject.lowerFrequency) / binSize);
@@ -895,9 +999,12 @@ namespace RTLSpectrumAnalyzerGUI
 
                     targetBinData.bufferFrames--;
 
-                    if (checkBox11.Checked && recordingSeries1 && !analyzingNearFarTransitions && series1BinData.GetAverageNumberOfFrames() >= REQUIRED_FRAMES_BEFORE_ANALYZING_TRANSISTIONS && series2BinData.GetAverageNumberOfFrames() >= REQUIRED_FRAMES_BEFORE_ANALYZING_TRANSISTIONS && Environment.TickCount - recordingSeries1Start > 60000)
+                    if (checkBox11.Checked && !analyzingNearFarTransitions && series1BinData.GetAverageNumberOfFrames() >= REQUIRED_FRAMES_BEFORE_ANALYZING_TRANSISTIONS && series2BinData.GetAverageNumberOfFrames() >= REQUIRED_FRAMES_BEFORE_ANALYZING_TRANSISTIONS)
                     {
-                        InitializeZoomToFrequencyThread();
+                        if ((recordingSeries1 && Environment.TickCount - recordingSeries1Start > BufferFrames.TIME_DELAY_BEFORE_ZOOMING || (recordingSeries2 && Environment.TickCount - recordingSeries2Start > BufferFrames.TIME_DELAY_BEFORE_ZOOMING)))
+                        {
+                            InitializeZoomToFrequencyThread();
+                        }
                     }
                 }
 
@@ -1098,11 +1205,13 @@ namespace RTLSpectrumAnalyzerGUI
 
                     transitionGradient = transitionGradientArray.GetTransitionGradientForFrequency(frequency, binSize/10);
 
-                    if (transitionGradient != null && transitionGradient.strength>100)
+                    if (transitionGradient != null && transitionGradient.strength > BufferFrames.MIN_NEAR_FAR_PERCENTAGE_FOR_RERADIATED_FREQUENCY)
                     {
                         ratioBinArray[i] = (float)(transitionGradient.strength);
                     }
                 }
+
+                transitionGradientArray.Sort();
 
                 if (checkBox8.Checked && checkBox12.Checked)
                     GraphDataForRange(chart2, "Strength Difference", ratioBinArray, graph2LowerFrequency, graph2UpperFrequency, graph2BinFreqInc);
@@ -1115,6 +1224,11 @@ namespace RTLSpectrumAnalyzerGUI
         {
             if (series1BinData != null && series2BinData != null && series1BinData.GetAverageNumberOfFrames() > 0 && series2BinData.GetAverageNumberOfFrames() > 0 && series1BinData.size == series2BinData.size)
             {
+                /*////chart2.ChartAreas[0].AxisY2.Enabled = System.Windows.Forms.DataVisualization.Charting.AxisEnabled.False;
+                
+                chart2.Series["Strength Difference"].YAxisType = System.Windows.Forms.DataVisualization.Charting.AxisType.Primary;
+                */
+
                 if (radioButton2.Checked)
                     chart2.Series["Strength Difference"].ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Column;
                 else
@@ -1141,20 +1255,26 @@ namespace RTLSpectrumAnalyzerGUI
                 {
                     prevDif = dif;
 
+                    frequency = (uint)(dataLowerFrequency + (i * binSize));
+
                     dif = Waterfall.CalculateStrengthDifference(series1BinData.avgBinArray, series2BinData.avgBinArray, i);
 
                     absDif = dif;
 
-                    frequency = (uint)(dataLowerFrequency + (i * binSize));
+                    ////absDif = series2BinData.avgBinArray[i] - series1BinData.avgBinArray[i];
+                    ////absDif = series1BinData.avgBinArray[i];
 
                     if (!checkBox1.Checked || absDif >= difThreshold)
-                        difBinArray[i] = (float)chart2.ChartAreas[0].AxisY.Minimum + (float)absDif;
+                    {
+                        ////difBinArray[i] = (float)chart2.ChartAreas[0].AxisY.Minimum + (float)absDif;
+                        difBinArray[i] = (float)absDif;
+                    }
                     else
                         difBinArray[i] = -99999999;
 
                     if (dif != prevDif)
                     {
-                        interestingSignals.Add(new InterestingSignal(i, series2BinData.avgBinArray[i], absDif, frequency));
+                        interestingSignals.Add(new InterestingSignal(i, series2BinData.avgBinArray[i], dif, frequency));
 
                         interestingSignals[interestingSignals.Count - 1].maxAvgStrength = series2BinData.avgBinArray[i];
                         interestingSignals[interestingSignals.Count - 1].minAvgStrength = series1BinData.avgBinArray[i];
@@ -1194,19 +1314,21 @@ namespace RTLSpectrumAnalyzerGUI
                 string frequencyString;
 
                 long prevFrequency = -1;
+                double prevStrengthDif = Double.NaN;
 
                 for (i = 0; i < interestingSignals.Count; i++)
                 {
                     if (leaderBoardSignals.Count < MAX_LEADER_BOARD_LIST_COUNT)
                     {
-                        if (Math.Abs(interestingSignals[i].frequency - prevFrequency) > 100000 || prevFrequency == -1)
+                        if (Math.Abs(interestingSignals[i].frequency - prevFrequency) > 100000 || interestingSignals[i].strengthDif > prevStrengthDif || prevFrequency == -1)
                         {
                             frequencyString = Utilities.GetFrequencyString(interestingSignals[i].frequency);
 
                             leaderBoardSignals.Add(interestingSignals[i]);
-                            listBox1.Items.Add(Utilities.GetFrequencyString(interestingSignals[i].frequency) + ": " + Math.Round(interestingSignals[i].strengthDif));
+                            listBox1.Items.Add(Utilities.GetFrequencyString(interestingSignals[i].frequency) + ": " + Math.Round(interestingSignals[i].strengthDif, 2) + "%");
 
                             prevFrequency = (long)interestingSignals[i].frequency;
+                            prevStrengthDif = interestingSignals[i].strengthDif;
                         }
                     }
                 }
@@ -1638,6 +1760,8 @@ namespace RTLSpectrumAnalyzerGUI
                 {                    
                     nearFarBufferIndex = currentBufferFramesObject.bufferFrames.currentBufferIndex;
 
+                    bool exitOnRequiredZoomedFrames = false;
+
                     while (recordingSeries1)
                     {                        
                         currentMode = BinDataMode.Far;
@@ -1645,37 +1769,57 @@ namespace RTLSpectrumAnalyzerGUI
                         int totalMagnitude = 0;
                         double avgMagnitude = 0;
 
-                        RecordData(ref series1BinData, ref averageSeries1CurrentFrameStrength, ref averageSeries1TotalFramesStrength, ref totalMagnitude, ref avgMagnitude, deviceCount - 1);
-                        
-                        try
+                        Command command = commandBuffer.GetCommand(commandBuffer.commandArray.Count - 2);
+
+                        if (analyzingNearFarTransitions && (command == null || command.name != "UserSelectedFrequencyForAnalysis"))
                         {
-                            this.Invoke(new Action(() =>
+                            BufferFramesObject zoomedOutBufferObject = bufferFramesArray.GetBufferFramesObject(0);
+
+                            long farFrames = GetAverageNumberOfFramesForFrequencyRegion(series1BinData, BinDataMode.Far, currentBufferFramesObject.lowerFrequency, currentBufferFramesObject.upperFrequency, zoomedOutBufferObject.lowerFrequency, binSize);                            
+
+                            if (programState == ProgramState.AQUIRING_NEAR_FAR_FRAMES && farFrames >= REQUIRED_ZOOMED_FRAMES_FOR_TRANSITIONS)//// && long.Parse(textBox6.Text) >= REQUIRED_ZOOMED_FRAMES_FOR_TRANSITIONS)
                             {
-                                if (series1BinData.clearFrames)
+                                recordingSeries1 = false;
+
+                                exitOnRequiredZoomedFrames = true;                                
+                            }
+                        }
+
+                        if (recordingSeries1)
+                        {
+                            RecordData(ref series1BinData, ref averageSeries1CurrentFrameStrength, ref averageSeries1TotalFramesStrength, ref totalMagnitude, ref avgMagnitude, deviceCount - 1);
+
+                            try
+                            {
+                                this.Invoke(new Action(() =>
                                 {
-                                    ClearSeries1();
+                                    if (series1BinData.clearFrames)
+                                    {
+                                        ClearSeries1();
 
-                                    series1BinData.clearFrames = false;
-                                }
+                                        series1BinData.clearFrames = false;
+                                    }
 
-                                if (series2BinData.clearFrames)
-                                {
-                                    ClearSeries2();
+                                    if (series2BinData.clearFrames)
+                                    {
+                                        ClearSeries2();
 
-                                    series2BinData.clearFrames = false;
-                                }
+                                        series2BinData.clearFrames = false;
+                                    }
 
-                                BufferFramesObject zoomedOutBufferObject = bufferFramesArray.GetBufferFramesObject(0);
+                                    BufferFramesObject zoomedOutBufferObject = bufferFramesArray.GetBufferFramesObject(0);
 
-                                long prevFarFrames = long.Parse(textBox5.Text);
+                                    long prevFarFrames = long.Parse(textBox5.Text);
 
-                                long farFrames = (long)series1BinData.GetAverageNumberOfFramesForFrequencyRegion(currentBufferFramesObject.lowerFrequency, currentBufferFramesObject.upperFrequency, zoomedOutBufferObject.lowerFrequency, binSize) + currentBufferFramesObject.bufferFrames.GetFramesCount(BinDataMode.Far);
+                                ////long farFrames = (long)series1BinData.GetAverageNumberOfFramesForFrequencyRegion(currentBufferFramesObject.lowerFrequency, currentBufferFramesObject.upperFrequency, zoomedOutBufferObject.lowerFrequency, binSize) + currentBufferFramesObject.bufferFrames.GetFramesCount(BinDataMode.Far);
 
-                                textBox5.Text = (farFrames).ToString();
+                                long farFrames = GetAverageNumberOfFramesForFrequencyRegion(series1BinData, BinDataMode.Far, currentBufferFramesObject.lowerFrequency, currentBufferFramesObject.upperFrequency, zoomedOutBufferObject.lowerFrequency, binSize);
 
-                                long prevTextBox6 = long.Parse(textBox6.Text);
+                                    textBox5.Text = (farFrames).ToString();
 
-                                prevAvgFramesForRegion = avgFramesForRegion;
+                                    long prevTextBox6 = long.Parse(textBox6.Text);
+
+                                /*////prevAvgFramesForRegion = avgFramesForRegion;
                                 prevNearFrames = nearFrames;
                                 prevIndeterminateFrames = indeterminateFrames;
 
@@ -1686,21 +1830,24 @@ namespace RTLSpectrumAnalyzerGUI
                                 indeterminateFrames = currentBufferFramesObject.bufferFrames.GetFramesCount(BinDataMode.Indeterminate);
 
                                 long frames = (long)(avgFramesForRegion + nearFrames + indeterminateFrames);
+                                */
 
-                                textBox6.Text = frames.ToString();
+                                    long frames = GetAverageNumberOfFramesForFrequencyRegion(series2BinData, BinDataMode.Near, currentBufferFramesObject.lowerFrequency, currentBufferFramesObject.upperFrequency, zoomedOutBufferObject.lowerFrequency, binSize);
 
-                                if ((avgFramesForRegion + nearFrames + indeterminateFrames) != (prevAvgFramesForRegion + prevNearFrames + prevIndeterminateFrames))
-                                {
-                                    framesDif++;
-                                }
-                                
-                                GraphProximitryValue();
+                                    textBox6.Text = frames.ToString();
 
-                                totalADCMagnitudeFar += avgMagnitude;
-                                double avgADCMagnitude = totalADCMagnitudeFar / series1BinData.GetAverageNumberOfFrames();
+                                    if ((avgFramesForRegion + nearFrames + indeterminateFrames) != (prevAvgFramesForRegion + prevNearFrames + prevIndeterminateFrames))
+                                    {
+                                        framesDif++;
+                                    }
 
-                                GraphData(series1BinData);
-                                GraphDifferenceOrNearFarTransitionRatios(series1BinData, series2BinData);
+                                    GraphProximitryValue();
+
+                                    totalADCMagnitudeFar += avgMagnitude;
+                                    double avgADCMagnitude = totalADCMagnitudeFar / series1BinData.GetAverageNumberOfFrames();
+
+                                    GraphData(series1BinData);
+                                    GraphDifferenceOrNearFarTransitionRatios(series1BinData, series2BinData);
 
                                 ////////GraphMagnitude(avgADCMagnitude);
 
@@ -1711,22 +1858,29 @@ namespace RTLSpectrumAnalyzerGUI
                                 ////GraphStrengthToTimeBasedGraph(null);
 
                                 if (checkBox8.Checked)
-                                {
-                                    chart1.Refresh();
-                                    chart2.Refresh();
-                                }
-                            }));
-                        }
-                        catch (Exception ex)
-                        {
+                                    {
+                                        chart1.Refresh();
+                                        chart2.Refresh();
+                                    }
+                                }));
+                            }
+                            catch (Exception ex)
+                            {
 
-                        }                        
+                            }
+                        }
                     }                    
 
                     try
                     {
                         this.Invoke(new Action(() =>
                         {
+                            /*////BufferFramesObject zoomedOutBufferObject = bufferFramesArray.GetBufferFramesObject(0);
+
+                            if (zoomedOutBufferObject == currentBufferFramesObject)
+                                bufferFramesArray.Flush(series1BinData, series2BinData, series1BinData);
+                                */
+
                             checkBox8.Checked = true;
                             
                             button4.Enabled = true;
@@ -1742,8 +1896,19 @@ namespace RTLSpectrumAnalyzerGUI
 
                             this.Cursor = Cursors.Arrow;
 
-                            if (recordingSeries2)
-                                mainForm.RecordSeries2();                            
+                            if (analyzingNearFarTransitions && automatedZooming  && exitOnRequiredZoomedFrames)
+                            {
+                                bool zoomingOut = ZoomOutOfFrequency();
+
+                                startRecordingSeries2 = false;
+                                startRecordingSeries1 = true;
+
+                                if (!zoomingOut)
+                                    RecordSeries1();                                
+                            }
+                            else
+                                if (recordingSeries2)
+                                    mainForm.RecordSeries2();                            
 
                             Command command = commandQueue.GetMostRecentCommand();
 
@@ -1807,13 +1972,17 @@ namespace RTLSpectrumAnalyzerGUI
             {
                 while (button3.Text == "Stop Recording")
                 {
-                    Thread.Sleep(100);                    
+                    Thread.Sleep(100);                
                 }
+
+                recordingSeries2Start = Environment.TickCount;
 
                 recordingSeries1 = false;
                 recordingSeries2 = true;
 
                 startRecordingSeries2 = false;
+
+                bool exitOnRequiredZoomedFrames = false;
 
                 if (series1BinData.GetAverageNumberOfFrames() > 0)
                 {
@@ -1836,9 +2005,11 @@ namespace RTLSpectrumAnalyzerGUI
                     {
                         currentMode = BinDataMode.Near;
 
-                        if (currentBufferFramesObject.transitionBufferFrames.nearIndex > -1 && currentBufferFramesObject.bufferFrames.currentBufferIndex > -1)
+                        if (programState == ProgramState.ANALYZING_TRANSITIONS && currentBufferFramesObject.transitionBufferFrames.nearIndex > -1 && currentBufferFramesObject.bufferFrames.currentBufferIndex > -1)
                         {
-                            if (currentBufferFramesObject.bufferFrames.bufferFramesArray[currentBufferFramesObject.bufferFrames.currentBufferIndex].time - currentBufferFramesObject.bufferFrames.bufferFramesArray[currentBufferFramesObject.transitionBufferFrames.nearIndex].time > BufferFrames.TRANSITION_LENGTH / 2)
+                            ////BufferFramesObject zoomedOutBufferObject = bufferFramesArray.GetBufferFramesObject(0);
+
+                            if (currentBufferFramesObject != zoomedOutBufferObject && currentBufferFramesObject.bufferFrames.bufferFramesArray[currentBufferFramesObject.bufferFrames.currentBufferIndex].time - currentBufferFramesObject.bufferFrames.bufferFramesArray[currentBufferFramesObject.transitionBufferFrames.nearIndex].time > BufferFrames.TRANSITION_LENGTH / 2)
                             {
                                 currentBufferFramesObject.transitionBufferFrames.farIndex = currentBufferFramesObject.transitionBufferFrames.nearIndex;
 
@@ -1890,7 +2061,12 @@ namespace RTLSpectrumAnalyzerGUI
 
                                     if (analyzingNearFarTransitions && (command == null || command.name != "UserSelectedFrequencyForAnalysis"))
                                     {
-                                        recordingSeries2 = false;
+                                        long frames = GetAverageNumberOfFramesForFrequencyRegion(series2BinData, BinDataMode.Near, currentBufferFramesObject.lowerFrequency, currentBufferFramesObject.upperFrequency, zoomedOutBufferObject.lowerFrequency, binSize);                                        
+
+                                        if (frames >= REQUIRED_ZOOMED_FRAMES_FOR_TRANSITIONS)
+                                            recordingSeries2 = false;
+                                        else
+                                            exitOnRequiredZoomedFrames = true;
                                     }
 
                                     this.Invoke(new Action(() =>
@@ -1930,6 +2106,20 @@ namespace RTLSpectrumAnalyzerGUI
                                 currentBufferFramesObject.transitionBufferFrames.nearIndex = -1;
                             }
                         }
+                        else
+                        {
+                            Command command = commandBuffer.GetCommand(commandBuffer.commandArray.Count - 2);
+
+                            if (analyzingNearFarTransitions && (command == null || command.name != "UserSelectedFrequencyForAnalysis"))
+                            {
+                                long frames = GetAverageNumberOfFramesForFrequencyRegion(series2BinData, BinDataMode.Near, currentBufferFramesObject.lowerFrequency, currentBufferFramesObject.upperFrequency, zoomedOutBufferObject.lowerFrequency, binSize);
+
+                                if (frames >= REQUIRED_ZOOMED_FRAMES_FOR_TRANSITIONS)
+                                    recordingSeries2 = false;
+                                else
+                                    exitOnRequiredZoomedFrames = true;
+                            }
+                        }
 
                         if (Environment.TickCount - GUIInput.lastInputTime >= BufferFrames.TRANSITION_LENGTH / 2)
                         {
@@ -1952,7 +2142,9 @@ namespace RTLSpectrumAnalyzerGUI
 
                                 uint indeterminateBufferFrames = currentBufferFramesObject.bufferFrames.GetFramesCount(BinDataMode.Indeterminate);
 
-                                currentBufferFramesObject.bufferFrames.Change(BinDataMode.Indeterminate, BinDataMode.Far);
+
+                                bufferFramesArray.Change(BinDataMode.Indeterminate, BinDataMode.Far);
+                                ////currentBufferFramesObject.bufferFrames.Change(BinDataMode.Indeterminate, BinDataMode.Far);
 
                                 series1BinData.bufferFrames = currentBufferFramesObject.bufferFrames.GetFramesCount(BinDataMode.Far);
                                 series2BinData.bufferFrames = currentBufferFramesObject.bufferFrames.GetFramesCount(BinDataMode.Near);
@@ -2007,50 +2199,58 @@ namespace RTLSpectrumAnalyzerGUI
                         int totalMagnitude = 0;
                         double avgMagnitude = 0;
 
-                        if (userNear)
+                        if (userNear && recordingSeries2)
+                        {
                             RecordData(ref series2BinData, ref averageSeries2CurrentFrameStrength, ref averageSeries2TotalFramesStrength, ref totalMagnitude, ref avgMagnitude, 0);
 
-                        try
-                        {
-                            this.Invoke(new Action(() =>
+                            try
                             {
-                                if (series1BinData.clearFrames)
+                                this.Invoke(new Action(() =>
                                 {
-                                    ClearSeries1();
+                                    if (series1BinData.clearFrames)
+                                    {
+                                        ClearSeries1();
 
-                                    series1BinData.clearFrames = false;
-                                }
+                                        series1BinData.clearFrames = false;
+                                    }
 
-                                if (series2BinData.clearFrames)
-                                {
-                                    ClearSeries2();
+                                    if (series2BinData.clearFrames)
+                                    {
+                                        ClearSeries2();
 
-                                    series2BinData.clearFrames = false;
-                                }
+                                        series2BinData.clearFrames = false;
+                                    }
 
-                                textBox5.Text = (series1BinData.GetAverageNumberOfFramesForFrequencyRegion(currentBufferFramesObject.lowerFrequency, currentBufferFramesObject.upperFrequency, zoomedOutBufferObject.lowerFrequency, binSize) + currentBufferFramesObject.bufferFrames.GetFramesCount(BinDataMode.Far)).ToString();
-                                textBox6.Text = (series2BinData.GetAverageNumberOfFramesForFrequencyRegion(currentBufferFramesObject.lowerFrequency, currentBufferFramesObject.upperFrequency, zoomedOutBufferObject.lowerFrequency, binSize) + currentBufferFramesObject.bufferFrames.GetFramesCount(BinDataMode.Near) + currentBufferFramesObject.bufferFrames.GetFramesCount(BinDataMode.Indeterminate)).ToString();
+                                    long farFrames = GetAverageNumberOfFramesForFrequencyRegion(series1BinData, BinDataMode.Far, currentBufferFramesObject.lowerFrequency, currentBufferFramesObject.upperFrequency, zoomedOutBufferObject.lowerFrequency, binSize);
+                                    long nearFrames = GetAverageNumberOfFramesForFrequencyRegion(series2BinData, BinDataMode.Near, currentBufferFramesObject.lowerFrequency, currentBufferFramesObject.upperFrequency, zoomedOutBufferObject.lowerFrequency, binSize);
 
-                                GraphProximitryValue();
+                                    textBox5.Text = farFrames.ToString();
+                                    textBox6.Text = nearFrames.ToString();
 
-                                totalADCMagnitudeNear += avgMagnitude;
-                                double avgADCMagnitude = totalADCMagnitudeNear / series2BinData.GetAverageNumberOfFrames();
+                                    GraphProximitryValue();
 
-                                GraphData(series2BinData);
-                                GraphDifferenceOrNearFarTransitionRatios(series1BinData, series2BinData);
+                                    totalADCMagnitudeNear += avgMagnitude;
+                                    double avgADCMagnitude = totalADCMagnitudeNear / series2BinData.GetAverageNumberOfFrames();
 
-                                GraphAverageStrength(null);
+                                    GraphData(series2BinData);
+                                    GraphDifferenceOrNearFarTransitionRatios(series1BinData, series2BinData);
 
-                                if (checkBox8.Checked)
-                                {
-                                    chart1.Refresh();
-                                    chart2.Refresh();
-                                }
-                            }));
-                        }
-                        catch (Exception ex)
-                        {
+                                    GraphAverageStrength(null);
 
+                                    if (checkBox8.Checked)
+                                    {
+                                        chart1.Refresh();
+                                        chart2.Refresh();
+                                    }
+
+                                    if (exitOnRequiredZoomedFrames && long.Parse(textBox5.Text) >= REQUIRED_ZOOMED_FRAMES_FOR_TRANSITIONS && long.Parse(textBox6.Text) >= REQUIRED_ZOOMED_FRAMES_FOR_TRANSITIONS)
+                                        recordingSeries2 = false;
+                                }));
+                            }
+                            catch (Exception ex)
+                            {
+
+                            }
                         }
                     }
 
@@ -2082,7 +2282,7 @@ namespace RTLSpectrumAnalyzerGUI
                                     case ("AutomatedZoomToFrequency"):
                                     case ("ZoomToFrequency"):
                                         if (command.name == "AutomatedZoomToFrequency")
-                                            startRecordingSeries1 = true;
+                                            startRecordingSeries2 = true;
 
                                         NewSettings(false);
 
@@ -2096,11 +2296,15 @@ namespace RTLSpectrumAnalyzerGUI
                                         break;
 
                                     default:
-                                        ZoomOutOfFrequency();
+                                        bool zoomingOut = ZoomOutOfFrequency();
 
                                         if (!userNear)
                                         {
-                                            RecordSeries1();
+                                            startRecordingSeries2 = false;
+                                            startRecordingSeries1 = true;
+
+                                            if (!zoomingOut)
+                                                RecordSeries1();
                                         }
                                         break;
                                 }
@@ -2108,10 +2312,24 @@ namespace RTLSpectrumAnalyzerGUI
                             else
                             {
                                 if (analyzingNearFarTransitions && automatedZooming)
-                                    ZoomOutOfFrequency();
+                                {
+                                    bool zoomingOut = ZoomOutOfFrequency();
+
+                                    if (!userNear)
+                                    {
+                                        startRecordingSeries2 = false;
+                                        startRecordingSeries1 = true;
+
+                                        if (!zoomingOut)
+                                            RecordSeries1();
+                                    }                                    
+                                }
                                 else
                                     if (!userNear)
                                     {
+                                        startRecordingSeries2 = false;
+                                        startRecordingSeries1 = true;
+
                                         RecordSeries1();
                                     }
                             }
@@ -2232,6 +2450,8 @@ namespace RTLSpectrumAnalyzerGUI
 
             if (series1BinData != null && series2BinData != null)
                 GraphDifferenceOrNearFarTransitionRatios(series1BinData, series2BinData);
+            
+            transitionGradientArray = bufferFramesArray.GetStrongestTransitionsFrequencyGradientArray();
 
             if (transitionGradientArray!=null)
             {
@@ -2463,7 +2683,7 @@ namespace RTLSpectrumAnalyzerGUI
 
                     graph1BinFreqInc = binSize;
                     graph2BinFreqInc = binSize;
-
+                    
                     double value;
                     for (int i = 0; i < series.avgBinArray.Length; i++)
                     {
@@ -2478,10 +2698,13 @@ namespace RTLSpectrumAnalyzerGUI
 
                         series.totalBinArray[i] = (float)value;
 
-                        if (series.GetAverageNumberOfFrames() == 0)
+                        series.totalBinArrayNumberOfFrames[i] = 1;
+
+                        /*////if (series.GetAverageNumberOfFrames() == 0)
                             value = 0;
                         else
                             value /= series.GetAverageNumberOfFrames();
+                            */
 
                         series.binArray[i] = (float)value;
                         series.avgBinArray[i] = (float)value;
@@ -2549,6 +2772,27 @@ namespace RTLSpectrumAnalyzerGUI
                     currentBufferFramesObject = bufferFramesArray.GetBufferFramesObject((long)dataLowerFrequency, (long)dataUpperFrequency);
 
                     reader.Close();
+
+                    resetGraph = true;
+                    newData = true;
+
+
+                    series1BinData.CalculateAvgBinData();
+                    series2BinData.CalculateAvgBinData();
+
+                    series1BinData.InitializeBinDataToAvgBinData();
+                    series2BinData.InitializeBinDataToAvgBinData();
+
+                    GraphData(series1BinData);
+                    GraphData(series2BinData);
+
+                    GraphDifferenceOrNearFarTransitionRatios(series1BinData, series2BinData);
+
+                    chart1.ChartAreas[0].AxisX.ScaleView.ZoomReset();
+                    chart2.ChartAreas[0].AxisX.ScaleView.ZoomReset();
+
+                    chart1.Refresh();
+                    chart2.Refresh();
                 }
             }
 
@@ -3370,6 +3614,32 @@ namespace RTLSpectrumAnalyzerGUI
 
         }
 
+        private void checkBox12_CheckedChanged(object sender, EventArgs e)
+        {
+            checkBox10.CheckedChanged -= checkBox10_CheckedChanged;
+
+            if (checkBox10.Checked)
+            {
+                ////checkBox12.Checked = true;
+                checkBox10.Checked = false;
+            }
+
+            checkBox10.CheckedChanged += checkBox10_CheckedChanged;
+        }
+
+        private void checkBox10_CheckedChanged(object sender, EventArgs e)
+        {
+            checkBox12.CheckedChanged -= checkBox12_CheckedChanged;
+            
+            if (checkBox12.Checked)
+            {
+                ////checkBox10.Checked = true;
+                checkBox12.Checked = false;
+            }
+
+            checkBox12.CheckedChanged += checkBox12_CheckedChanged;
+        }
+
         private void listBox2_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (listBox2.SelectedIndex > -1)
@@ -3385,6 +3655,8 @@ namespace RTLSpectrumAnalyzerGUI
 
                 automatedZooming = false;
                 button24.Enabled = true;
+
+                programState = ProgramState.ANALYZING_TRANSITIONS;
 
                 ZoomToFrequency(userSelectedFrequencyForAnalysis);
             }

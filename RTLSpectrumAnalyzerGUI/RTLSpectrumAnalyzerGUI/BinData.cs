@@ -84,6 +84,21 @@ namespace RTLSpectrumAnalyzerGUI
             }
         }
 
+        public void CalculateAvgBinData()
+        {
+            for (int i = 0; i < this.size; i++)
+            {
+                avgBinArray[i] = totalBinArray[i]  / totalBinArrayNumberOfFrames[i];                
+            }
+        }
+        
+        public void InitializeBinDataToAvgBinData()
+        {
+            for (int i = 0; i < this.size; i++)
+            {
+                binArray[i] = avgBinArray[i];
+            }
+        }
 
         public double GetAverageNumberOfFrames()
         {
@@ -99,7 +114,7 @@ namespace RTLSpectrumAnalyzerGUI
             else
                 return 0;
         }
-
+        
         public double GetAverageNumberOfFramesForFrequencyRegion(long lowerFrequency, long upperFrequency, long dataLowerFrequency, double binFrequencySize)
         {
             Utilities.FrequencyRange frequencyRange = Utilities.GetIndicesForFrequencyRange(lowerFrequency, upperFrequency, dataLowerFrequency, binFrequencySize);

@@ -5,3 +5,4 @@
 *.exp
 **/debug
 **/release
+**/RTLSpectrumAnalyzerGUI/.vs/**
