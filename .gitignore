@@ -3,6 +3,7 @@
 *.idb
 *.tlog
 *.exp
+*.rtl
 **/debug
 **/release
 **/RTLSpectrumAnalyzerGUI/.vs/**

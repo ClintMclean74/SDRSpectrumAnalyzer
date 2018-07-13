@@ -253,9 +253,7 @@ namespace RTLSpectrumAnalyzerGUI
 
                 button24.Enabled = false;
 
-                bufferFramesArray.Flush(series1BinData, series2BinData, series1BinData);
-
-                commandBuffer.AddCommand("bufferFramesArray.Flush");
+                bufferFramesArray.Flush(series1BinData, series2BinData, series1BinData);                
 
                 textBox1.Text = zoomedOutBufferObject.lowerFrequency.ToString();
                 textBox2.Text = zoomedOutBufferObject.upperFrequency.ToString();
@@ -267,9 +265,6 @@ namespace RTLSpectrumAnalyzerGUI
                     button5.PerformClick();
 
                 startRecordingSeries2 = true;
-
-
-                commandBuffer.AddCommand("ZoomOutOfFrequency");
 
                 LaunchNewThread(NewSettingsThread, 1000);                
 
@@ -959,10 +954,10 @@ namespace RTLSpectrumAnalyzerGUI
                 {
                     targetBinData = series2BinData;
 
-                    this.Invoke(new Action(() =>
+                    /*////this.Invoke(new Action(() =>
                     {
                         listBox3.Items.Add("series2BinData totalBinArrayNumberOfFrames[]++\n");
-                    }));                    
+                    }));*/                  
                 }
 
                 if (targetBinData != null)
@@ -1003,10 +998,10 @@ namespace RTLSpectrumAnalyzerGUI
             }
             else
             {
-                this.Invoke(new Action(() =>
+                /*////this.Invoke(new Action(() =>
                 {
                     listBox3.Items.Add("buffer mode modified from: " + currentBufferFramesObject.bufferFrames.bufferFramesArray[currentBufferFramesObject.bufferFrames.currentBufferIndex].mode + " to: " + currentMode + "\n");
-                }));                
+                }));*/              
 
                 currentBufferFramesObject.bufferFrames.bufferFramesArray[currentBufferFramesObject.bufferFrames.currentBufferIndex].mode = currentMode;                
             }
@@ -1937,15 +1932,9 @@ namespace RTLSpectrumAnalyzerGUI
         }
 
         private void RecordSeries2()
-        {
-            commandBuffer.AddCommand("RecordSeries2");
-
-            commandBuffer.AddCommand("button5.Text: " + button5.Text);
-
+        {            
             if (button5.Text == "Record Near Series Data")
-            {
-                commandBuffer.AddCommand("check button3.Text == Stop Recording");
-
+            {                
                 while (button3.Text == "Stop Recording")
                 {
                     Thread.Sleep(100);                
@@ -1956,9 +1945,7 @@ namespace RTLSpectrumAnalyzerGUI
                 recordingSeries1 = false;
                 recordingSeries2 = true;
 
-                startRecordingSeries2 = false;
-
-                commandBuffer.AddCommand("startRecordingSeries2 = false");
+                startRecordingSeries2 = false;                
 
                 bool exitOnRequiredZoomedFrames = false;
 
@@ -1966,13 +1953,10 @@ namespace RTLSpectrumAnalyzerGUI
                 {
                     radioButton4.Enabled = true;
                     radioButton4.Checked = true;
-                }
-
-                commandBuffer.AddCommand("Task.Factory.StartNew1");
+                }                
 
                 Task.Factory.StartNew(() =>
-                {
-                    commandBuffer.AddCommand("Task.Factory.StartNew2");
+                {                    
                     bool userNear = true;
 
                     nearFarBufferIndex = currentBufferFramesObject.bufferFrames.currentBufferIndex;
@@ -2015,6 +1999,8 @@ namespace RTLSpectrumAnalyzerGUI
                                     int currentTransitionFrame = currentBufferFramesObject.transitionBufferFrames.farIndex;
 
                                     long startTransitionTime = currentBufferFramesObject.bufferFrames.bufferFramesArray[currentBufferFramesObject.transitionBufferFrames.farIndex].time;
+
+                                    currentBufferFramesObject.transitionBufferFrames.currentTransitionBufferFramesArray.Clear();
 
                                     long index = 0;
                                     while (currentTransitionFrame != currentBufferFramesObject.bufferFrames.currentBufferIndex)
@@ -2578,7 +2564,7 @@ namespace RTLSpectrumAnalyzerGUI
                         button17.Enabled = true;
                         button18.Enabled = true;
 
-                        listBox3.Items.Add("startRecordingSeries2: " + startRecordingSeries2);
+                        ////listBox3.Items.Add("startRecordingSeries2: " + startRecordingSeries2);
                         
                         if (startRecordingSeries1)
                             RecordSeries1();
