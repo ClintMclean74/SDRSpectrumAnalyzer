@@ -26,14 +26,14 @@ namespace RTLSpectrumAnalyzerGUI
             public const long TIME_DELAY_BEFORE_ZOOMING = 60 * 1000;
         #endif
 
-        public const long MIN_ZOOMED_IN_TRANSISTION_FRAMES = 4;        
+        public const long ZOOMED_IN_TRANSISTION_FRAMES_EXIT = 4;
+        public const long ZOOMED_IN_TRANSISTION_FRAMES_STAGE1 = 1;
 
         public const double MIN_NEAR_FAR_PERCENTAGE_FOR_RERADIATED_FREQUENCY = 105;
 
         public const long FREQUENCY_SEGMENT_SIZE = 100000;
 
-
-
+        public readonly static double[] minStrengthForRankings = { 150, 110 };
 
         public int currentBufferIndex = -1;
         public int startBufferIndex = 0;
@@ -236,13 +236,29 @@ namespace RTLSpectrumAnalyzerGUI
         {
             if (currentTransitionBufferFramesArray.Count > 0)
             {
-                double[] values = new double[currentTransitionBufferFramesArray.Count];
-
-                double totalStrengthValue;
-
                 int i = startBufferIndex;
 
                 int k = 0;
+
+                do
+                {
+                    if (i >= currentTransitionBufferFramesArray.Count)
+                        i = 0;
+
+                    k++;
+
+                    i++;
+                }
+                while (i != currentBufferIndex + 1);
+
+
+                double[] values = new double[k];
+
+                double totalStrengthValue;
+
+                i = startBufferIndex;
+
+                k = 0;
 
                 do
                 {
@@ -449,6 +465,37 @@ namespace RTLSpectrumAnalyzerGUI
                     gradients[gradients.Count - 1].gradientArray[i] = new Gradient(gradientStrength, avgStackedFrames);
                 }                
             }            
+        }
+
+        public int EvaluatereradiatedRankingCategory()
+        {
+            if (gradients.Count > 0)
+            {
+                int gradientCount;
+
+                for (int j = minStrengthForRankings.Length-1; j >=0; j--)
+                {
+                    for (int i = 0; i < gradients.Count; i++)
+                    {
+                        gradientCount = 0;
+
+                        for (int k = 0; k < gradients[i].gradientArray.Length; k++)
+                        {
+                            if (gradients[i].gradientArray[k].strength < minStrengthForRankings[j])
+                            {
+                                gradientCount++;
+                            }
+                        }
+
+                        if (gradientCount == gradients[0].gradientArray.Length)
+                        {
+                            return j;        
+                        }
+                    }
+                }
+            }
+
+            return 1;
         }
 
         public bool EvaluateWhetherReradiatedFrequencyRange()

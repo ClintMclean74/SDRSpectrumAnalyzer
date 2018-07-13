@@ -112,6 +112,19 @@ namespace RTLSpectrumAnalyzerGUI
         }
     }
 
+    public class AnalysisOption
+    {
+        public int leaderBoardSignalIndex;
+        public BufferFramesObject bufferFramesObject;
+
+        public AnalysisOption(int leaderBoardSignalIndex, BufferFramesObject bufferFramesObject)
+        {
+            this.leaderBoardSignalIndex = leaderBoardSignalIndex;
+
+            this.bufferFramesObject = bufferFramesObject;
+        }
+    }
+
     public class BufferFramesObject
     {
         public BufferFrames bufferFrames, transitionBufferFrames;
@@ -120,6 +133,10 @@ namespace RTLSpectrumAnalyzerGUI
         public long upperFrequency;
 
         public bool possibleReradiatedFrequencyRange = true;
+
+        public bool[] options = new bool[10];
+
+        public int reradiatedRankingCategory = 1;
 
         public BufferFramesObject(Form1 mainForm, long lowerFrequency, long upperFrequency)
         {
@@ -133,11 +150,12 @@ namespace RTLSpectrumAnalyzerGUI
 
         public bool EvaluateWhetherReradiatedFrequencyRange()
         {
-            /*////
-            possibleReradiatedFrequencyRange = transitionBufferFrames.EvaluateWhetherReradiatedFrequencyRange();
+            /*////possibleReradiatedFrequencyRange = transitionBufferFrames.EvaluateWhetherReradiatedFrequencyRange();
 
             return possibleReradiatedFrequencyRange;
             */
+
+            reradiatedRankingCategory = transitionBufferFrames.EvaluatereradiatedRankingCategory();
 
             return true;
         }

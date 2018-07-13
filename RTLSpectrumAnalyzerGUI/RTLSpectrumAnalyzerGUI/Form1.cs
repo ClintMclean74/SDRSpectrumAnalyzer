@@ -212,19 +212,23 @@ namespace RTLSpectrumAnalyzerGUI
             BufferFramesObject zoomedOutBufferObject = bufferFramesArray.GetBufferFramesObject(0);
             BufferFramesObject bufferFramesObject = mainForm.bufferFramesArray.GetBufferFramesObject(lowerFrequency, upperFrequency);
 
-            long frames = (long)binData.GetAverageNumberOfFramesForFrequencyRegion(bufferFramesObject.lowerFrequency, bufferFramesObject.upperFrequency, dataLowerFrequency, binSize);
+            long frames = 0;
+
+            frames += (long)binData.GetAverageNumberOfFramesForFrequencyRegion(lowerFrequency, upperFrequency, dataLowerFrequency, binSize);
 
             if (zoomedOutBufferObject!= bufferFramesObject)
                 frames += zoomedOutBufferObject.bufferFrames.GetFramesCount(binDataMode);
 
-            frames += bufferFramesObject.bufferFrames.GetFramesCount(binDataMode);
+            if (bufferFramesObject!=null)
+                frames += bufferFramesObject.bufferFrames.GetFramesCount(binDataMode);
 
             if (binDataMode == BinDataMode.Near)
             {
                 if (zoomedOutBufferObject != bufferFramesObject)
                     frames += zoomedOutBufferObject.bufferFrames.GetFramesCount(BinDataMode.Indeterminate);
 
-                frames += bufferFramesObject.bufferFrames.GetFramesCount(BinDataMode.Indeterminate);
+                if (bufferFramesObject != null)
+                    frames += bufferFramesObject.bufferFrames.GetFramesCount(BinDataMode.Indeterminate);
             }
 
 
@@ -249,7 +253,9 @@ namespace RTLSpectrumAnalyzerGUI
 
                 button24.Enabled = false;
 
-                bufferFramesArray.Flush(series1BinData, series2BinData, series1BinData);                
+                bufferFramesArray.Flush(series1BinData, series2BinData, series1BinData);
+
+                commandBuffer.AddCommand("bufferFramesArray.Flush");
 
                 textBox1.Text = zoomedOutBufferObject.lowerFrequency.ToString();
                 textBox2.Text = zoomedOutBufferObject.upperFrequency.ToString();
@@ -262,12 +268,10 @@ namespace RTLSpectrumAnalyzerGUI
 
                 startRecordingSeries2 = true;
 
-                eventTimer = new System.Windows.Forms.Timer();
 
-                eventTimer.Tick += new EventHandler(NewSettingsThread);
-                eventTimer.Interval = 1000;
+                commandBuffer.AddCommand("ZoomOutOfFrequency");
 
-                eventTimer.Start();
+                LaunchNewThread(NewSettingsThread, 1000);                
 
                 return true;
             }
@@ -285,17 +289,36 @@ namespace RTLSpectrumAnalyzerGUI
                 {
                     commandBuffer.AddCommand("InitializeZoomToFrequencyThread");
 
-                    eventTimer = new System.Windows.Forms.Timer();
-
-                    eventTimer.Tick += new EventHandler(DetermineInterestingSignalAndZoomToFrequencyThread);
-                    eventTimer.Interval = 10000;
-
-                    eventTimer.Start();
+                    LaunchNewThread(DetermineInterestingSignalAndZoomToFrequencyThread, 10000);                    
                 }
             }));
         }
 
-        private void DetermineInterestingSignalAndZoomToFrequencyThread(Object myObject, EventArgs myEventArgs)
+        public delegate void DelegateDeclaration(Object myObject, EventArgs myEventArgs);
+
+        public void ShowQuickStartFormThread(Object myObject, EventArgs myEventArgs)
+        {
+            if (eventTimer != null)
+            {
+                DestroyEventTimer();
+
+                ShowQuickStartForm();
+            }
+        }
+
+        private void LaunchNewThread(DelegateDeclaration target, int delay)
+        {
+            DestroyEventTimer();
+
+            eventTimer = new System.Windows.Forms.Timer();
+
+            eventTimer.Tick += new EventHandler(target);
+            eventTimer.Interval = delay;
+
+            eventTimer.Start();
+        }
+
+        private void DestroyEventTimer()
         {
             if (eventTimer != null)
             {
@@ -306,125 +329,85 @@ namespace RTLSpectrumAnalyzerGUI
                 eventTimer.Dispose();
 
                 eventTimer = null;
+            }
+        }
+
+        private void DetermineInterestingSignalAndZoomToFrequencyThread(Object myObject, EventArgs myEventArgs)
+        {
+            if (eventTimer != null)
+            {
+                DestroyEventTimer();                
 
                 DetermineInterestingSignalAndZoomToFrequency();
             }
+        }
+
+        private int DetermineSignalForAcquiringFrames()
+        {
+            for (int i = 0; i < leaderBoardSignals.Count; i++)
+            {
+                Utilities.FrequencyRange frequencyRange = Utilities.GetFrequencyRangeFromFrequency((long)leaderBoardSignals[i].frequency);
+
+                long framesForRegion;
+
+                if (recordingSeries1)
+                {
+                    framesForRegion = GetAverageNumberOfFramesForFrequencyRegion(series1BinData, BinDataMode.Far, (long)frequencyRange.lower, (long)frequencyRange.upper, dataLowerFrequency, binSize);
+                }
+                else
+                    framesForRegion = GetAverageNumberOfFramesForFrequencyRegion(series2BinData, BinDataMode.Near, (long)frequencyRange.lower, (long)frequencyRange.upper, dataLowerFrequency, binSize);
+
+                if (framesForRegion < REQUIRED_ZOOMED_FRAMES_FOR_TRANSITIONS)
+                    return i;
+            }
+
+            return -1;
+        }
+
+        private int DetermineSignalForAnalysingTransitions()
+        {
+            for (int j = 0; j < BufferFrames.minStrengthForRankings.Length; j++)
+            {
+                for (int i = 0; i < leaderBoardSignals.Count; i++)
+                {
+                    Utilities.FrequencyRange frequencyRange = Utilities.GetFrequencyRangeFromFrequency((long)leaderBoardSignals[i].frequency);
+
+                    BufferFramesObject bufferFramesObject = bufferFramesArray.GetBufferFramesObject((long)frequencyRange.lower, (long)frequencyRange.upper);
+
+                    if (bufferFramesObject == null)
+                        return i;
+
+                    if (bufferFramesObject.reradiatedRankingCategory <= j)
+                        return i;
+                }
+            }
+
+            return -1;
         }
 
         private void DetermineInterestingSignalAndZoomToFrequency()
         {
             if (leaderBoardSignals.Count > 0)
             {
-                int secondOptionLeaderBoardSignalIndex = -1, thirdOptionLeaderBoardSignalIndex = -1;
+                currentLeaderBoardSignalIndex = DetermineSignalForAcquiringFrames();
 
-                if (currentLeaderBoardSignalIndex < 0)
-                    currentLeaderBoardSignalIndex++;
+                if (currentLeaderBoardSignalIndex == -1 && recordingSeries1)                
+                {                    
+                    currentLeaderBoardSignalIndex = DetermineSignalForAnalysingTransitions();
 
-                if (currentLeaderBoardSignalIndex >= MAX_LEADER_BOARD_LIST_COUNT)
-                    currentLeaderBoardSignalIndex = 0;
-
-                Utilities.FrequencyRange frequencyRange;
-                BufferFramesObject bufferFramesObject = null;
-
-                long framesForRegion;
-
-                while (currentLeaderBoardSignalIndex < MAX_LEADER_BOARD_LIST_COUNT && currentLeaderBoardSignalIndex < leaderBoardSignals.Count)
-                {
-                    frequencyRange = Utilities.GetFrequencyRangeFromFrequency((long)leaderBoardSignals[currentLeaderBoardSignalIndex].frequency);
-
-                    bufferFramesObject = bufferFramesArray.GetBufferFramesObject((long)frequencyRange.lower, (long)frequencyRange.upper);                    
-
-                    if (bufferFramesObject != null)
-                    {
-                        if (recordingSeries1)
-                            framesForRegion = GetAverageNumberOfFramesForFrequencyRegion(series1BinData, BinDataMode.Far, bufferFramesObject.lowerFrequency, bufferFramesObject.upperFrequency, dataLowerFrequency, binSize);
-                        else
-                            framesForRegion = GetAverageNumberOfFramesForFrequencyRegion(series2BinData, BinDataMode.Near, bufferFramesObject.lowerFrequency, bufferFramesObject.upperFrequency, dataLowerFrequency, binSize);
-
-                        if (!bufferFramesObject.possibleReradiatedFrequencyRange)
-                            currentLeaderBoardSignalIndex++;
-                        else
-                        if (bufferFramesObject.transitionBufferFrames.transitions >= BufferFrames.MIN_ZOOMED_IN_TRANSISTION_FRAMES)//// && currentLeaderBoardSignalIndex < MAX_LEADER_BOARD_LIST_COUNT)
-                        {
-                            currentLeaderBoardSignalIndex++;
-                        }
-                        else
-                        if (framesForRegion > REQUIRED_ZOOMED_FRAMES_FOR_TRANSITIONS)
-                        {
-                            if (secondOptionLeaderBoardSignalIndex == -1)
-                                secondOptionLeaderBoardSignalIndex = currentLeaderBoardSignalIndex;
-
-                            currentLeaderBoardSignalIndex++;
-                        }
-                        else
-                        {
-                            if (bufferFramesObject.transitionBufferFrames.bufferFramesArray.Count > 0 && bufferFramesObject.transitionBufferFrames.GetStrongestTransitionsGradientFrequency().array[0].strength < 0 && thirdOptionLeaderBoardSignalIndex==-1)
-                            {
-                                thirdOptionLeaderBoardSignalIndex = currentLeaderBoardSignalIndex;
-
-                                currentLeaderBoardSignalIndex++;
-                            }
-                            /*////else if (GetAverageNumberOfFramesForFrequencyRegion(series1BinData, BinDataMode.Far, bufferFramesObject.lowerFrequency, bufferFramesObject.upperFrequency, dataLowerFrequency, binSize)> REQUIRED_ZOOMED_FRAMES_FOR_TRANSITIONS && zoomingAnalysis)
-                            {
-                                currentLeaderBoardSignalIndex++;
-                            }*/
-                            else
-                            {
-                                break;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        break;
-                    }
+                    if (currentLeaderBoardSignalIndex > -1)
+                        programState = ProgramState.ANALYZING_TRANSITIONS;
                 }
-
-                if (currentLeaderBoardSignalIndex < MAX_LEADER_BOARD_LIST_COUNT && currentLeaderBoardSignalIndex < leaderBoardSignals.Count)
-                {
+                else
                     programState = ProgramState.AQUIRING_NEAR_FAR_FRAMES;
 
-                    ZoomToFrequency((long)leaderBoardSignals[currentLeaderBoardSignalIndex].frequency);
-                }
-                else if (recordingSeries1)
-                {
-                    programState = ProgramState.ANALYZING_TRANSITIONS;
-
-                    if (secondOptionLeaderBoardSignalIndex > -1)
-                    {
-                        currentLeaderBoardSignalIndex = secondOptionLeaderBoardSignalIndex;
-                        ZoomToFrequency((long)leaderBoardSignals[currentLeaderBoardSignalIndex].frequency);
-                    }
-                    else
-                    if (thirdOptionLeaderBoardSignalIndex > -1)
-                    {
-                        currentLeaderBoardSignalIndex = thirdOptionLeaderBoardSignalIndex;
-                        ZoomToFrequency((long)leaderBoardSignals[currentLeaderBoardSignalIndex].frequency);
-                    }
-                    else
-                    {
-                        notifyIcon2.Icon = SystemIcons.Exclamation;
-
-                        notifyIcon2.BalloonTipTitle = "Transitions Analysis";
-                        notifyIcon2.BalloonTipText = "Leaderboard signals analayzed for " + BufferFrames.MIN_ZOOMED_IN_TRANSISTION_FRAMES + " or more transitions";
-
-                        notifyIcon2.Visible = true;
-
-                        notifyIcon2.ShowBalloonTip(10000);
-
-                        Random rnd = new Random();
-
-                        currentLeaderBoardSignalIndex = rnd.Next(Math.Min(leaderBoardSignals.Count, MAX_LEADER_BOARD_LIST_COUNT));
-
-                        ZoomToFrequency((long)leaderBoardSignals[currentLeaderBoardSignalIndex].frequency);
-                    }
-                }
-            }
+                if (currentLeaderBoardSignalIndex > -1)
+                    ZoomToFrequency((long)leaderBoardSignals[currentLeaderBoardSignalIndex].frequency); 
+            }                
         }
 
         private void ZoomToFrequency(long frequency)
-        {
-            ////if (recordingSeries1 || !automatedZooming)
+        {        
             if (recordingSeries1 || recordingSeries2 || !automatedZooming)
             {
                 Command command = commandBuffer.GetMostRecentCommand();
@@ -480,7 +463,6 @@ namespace RTLSpectrumAnalyzerGUI
             }
         }
 
-
         private double RangeChanged(System.Windows.Forms.DataVisualization.Charting.Chart chart, string dataSeries, float[] data, long lowerIndex, long upperIndex, double newLowerFrequency, ref double graphBinFreqInc)
         {
             try
@@ -517,66 +499,71 @@ namespace RTLSpectrumAnalyzerGUI
 
                     int interestingSignalIndex;
 
-                    System.Windows.Forms.DataVisualization.Charting.DataPoint graphPoint1=null;                    
+                    System.Windows.Forms.DataVisualization.Charting.DataPoint graphPoint1=null;
+
+                    if (dataSeries == "Strength Difference")
+                        chart.Series[dataSeries].Points.Clear();
 
                     for (int i = 0; i < lowerResGraphBinCount; i++)
                     {
                         value = data[(long)index];
 
-                        if (checkBox8.Checked)
+                        if (value > 100 || dataSeries != "Strength Difference")
                         {
-                            if (i < chart.Series[dataSeries].Points.Count)
-                            {
-                                graphPoint1 = chart.Series[dataSeries].Points.ElementAt(i);
-
-                                graphPoint1.SetValueXY(i, value);
-
-                                graphPoint1.AxisLabel = Utilities.GetFrequencyString(binFrequency);
-                            }
-                            else
-                            {
-                                graphPoint1 = new System.Windows.Forms.DataVisualization.Charting.DataPoint(i, value);
-                                graphPoint1.AxisLabel = Utilities.GetFrequencyString(binFrequency);
-
-                                chart.Series[dataSeries].Points.Add(graphPoint1);
-                            }
-
-                            graphPoint1.Label = "";
-                        }
-
-
-                        if (checkBox10.Checked)
-                        {
-                            if (interestingSignals != null && dataSeries == "Strength Difference")
-                            {
-                                for (int j = (int)index; j < (int)(index + inc); j++)
+                            if (checkBox8.Checked)
+                            {                                
+                                if (i < chart.Series[dataSeries].Points.Count && dataSeries != "Strength Difference")                                
                                 {
-                                    interestingSignalIndex = interestingSignals.FindIndex(x => x.index == j);
+                                    graphPoint1 = chart.Series[dataSeries].Points.ElementAt(i);
 
-                                    if (interestingSignalIndex >= 0 && interestingSignalIndex < 4)
+                                    graphPoint1.SetValueXY(i, value);
+
+                                    graphPoint1.AxisLabel = Utilities.GetFrequencyString(binFrequency);
+                                }
+                                else                                
+                                {
+                                    graphPoint1 = new System.Windows.Forms.DataVisualization.Charting.DataPoint(i, value);
+                                    graphPoint1.AxisLabel = Utilities.GetFrequencyString(binFrequency);
+
+                                    chart.Series[dataSeries].Points.Add(graphPoint1);
+                                }
+
+                                graphPoint1.Label = "";
+                            }
+
+
+                            if (checkBox10.Checked)
+                            {
+                                if (interestingSignals != null && dataSeries == "Strength Difference")
+                                {
+                                    for (int j = (int)index; j < (int)(index + inc); j++)
                                     {
-                                        interestingSignal = interestingSignals[interestingSignalIndex];
+                                        interestingSignalIndex = interestingSignals.FindIndex(x => x.index == j);
 
-                                        if (checkBox8.Checked)
+                                        if (interestingSignalIndex >= 0 && interestingSignalIndex < 4)
                                         {
-                                            if (graphPoint1 != null)
-                                            {
-                                                graphPoint1.Label = Utilities.GetFrequencyString(binFrequency);
-                                                
-                                                graphPoint1.LabelForeColor = Waterfall.colors[(int)((float)interestingSignalIndex / 4 * (Waterfall.colors.Count - 1))];
-                                            }
-                                        }
+                                            interestingSignal = interestingSignals[interestingSignalIndex];
 
-                                        break;
+                                            if (checkBox8.Checked)
+                                            {
+                                                if (graphPoint1 != null)
+                                                {
+                                                    graphPoint1.Label = Utilities.GetFrequencyString(binFrequency);
+
+                                                    graphPoint1.LabelForeColor = Waterfall.colors[(int)((float)interestingSignalIndex / 4 * (Waterfall.colors.Count - 1))];
+                                                }
+                                            }
+
+                                            break;
+                                        }
                                     }
                                 }
                             }
-                        }
-                        else
-                        if (checkBox12.Checked && transitionGradientArray!=null)
-                        {                            
+                            else
+                            if (checkBox12.Checked && transitionGradientArray != null)
+                            {
                                 if (graphPoint1 != null)
-                                {                                    
+                                {
                                     TransitionGradient transitionGradient = transitionGradientArray.GetTransitionGradientForFrequency((long)binFrequency, binSize / 10);
 
                                     if (transitionGradient != null)
@@ -588,24 +575,24 @@ namespace RTLSpectrumAnalyzerGUI
                                         }
                                     }
                                 }
-                        }
-
-
-                        if (i >= 0)
-                        {
-                            if (value < minY)
-                            {
-                                minY = value;
-
-                                minYIndex = i;
                             }
 
-                            if (value > maxY)//// && index > 0)
+                            if (i >= 0)
                             {
-                                maxY = value;
+                                if (value < minY)
+                                {
+                                    minY = value;
 
-                                maxYIndex = i;
-                            }
+                                    minYIndex = i;
+                                }
+
+                                if (value > maxY)//// && index > 0)
+                                {
+                                    maxY = value;
+
+                                    maxYIndex = i;
+                                }
+                            }                            
                         }
 
                         index += inc;
@@ -633,7 +620,6 @@ namespace RTLSpectrumAnalyzerGUI
 
                     avgStrength /= valueCount;
 
-                    ////chart.ChartAreas[0].AxisX.ScaleView.Zoom(1, lowerResGraphBinCount - 1);
                     chart.ChartAreas[0].AxisX.ScaleView.Zoom(0, lowerResGraphBinCount - 1);
 
                     if (chart == chart1)
@@ -967,11 +953,6 @@ namespace RTLSpectrumAnalyzerGUI
                 if (currentBufferFramesObject.bufferFrames.bufferFramesArray[currentBufferFramesObject.bufferFrames.currentBufferIndex].mode == BinDataMode.Far)
                 {
                     targetBinData = series1BinData;
-
-                    this.Invoke(new Action(() =>
-                    {
-                        listBox3.Items.Add("series1BinData totalBinArrayNumberOfFrames[]++\n");
-                    }));                    
                 }
                 else
                     if (currentBufferFramesObject.bufferFrames.bufferFramesArray[currentBufferFramesObject.bufferFrames.currentBufferIndex].mode == BinDataMode.Near)
@@ -1224,11 +1205,6 @@ namespace RTLSpectrumAnalyzerGUI
         {
             if (series1BinData != null && series2BinData != null && series1BinData.GetAverageNumberOfFrames() > 0 && series2BinData.GetAverageNumberOfFrames() > 0 && series1BinData.size == series2BinData.size)
             {
-                /*////chart2.ChartAreas[0].AxisY2.Enabled = System.Windows.Forms.DataVisualization.Charting.AxisEnabled.False;
-                
-                chart2.Series["Strength Difference"].YAxisType = System.Windows.Forms.DataVisualization.Charting.AxisType.Primary;
-                */
-
                 if (radioButton2.Checked)
                     chart2.Series["Strength Difference"].ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Column;
                 else
@@ -1261,12 +1237,8 @@ namespace RTLSpectrumAnalyzerGUI
 
                     absDif = dif;
 
-                    ////absDif = series2BinData.avgBinArray[i] - series1BinData.avgBinArray[i];
-                    ////absDif = series1BinData.avgBinArray[i];
-
                     if (!checkBox1.Checked || absDif >= difThreshold)
                     {
-                        ////difBinArray[i] = (float)chart2.ChartAreas[0].AxisY.Minimum + (float)absDif;
                         difBinArray[i] = (float)absDif;
                     }
                     else
@@ -1348,13 +1320,11 @@ namespace RTLSpectrumAnalyzerGUI
 
             BufferFramesObject bufferFramesObjectContainingStrongestTransitionGradientFrequency = bufferFramesArray.GetBufferFramesObjectForFrequency(transitionGradient.frequency);
 
-
             double[] transitionStrengthOverTime = bufferFramesObjectContainingStrongestTransitionGradientFrequency.transitionBufferFrames.GetStrengthOverTimeForIndex(transitionGradient.index);
 
             this.mainForm.textBox18.Text = SignalDataUtilities.Series2ndVS1stHalfAvgStrength(transitionStrengthOverTime).ToString() + "%";
 
             currentBufferFramesObject.transitionBufferFrames.GraphData(chart8, transitionStrengthOverTime);
-
 
             transitionStrengthOverTime = bufferFramesObjectContainingStrongestTransitionGradientFrequency.transitionBufferFrames.GetAveragedStrengthOverTimeForIndex(transitionGradient.index);            
 
@@ -1967,13 +1937,19 @@ namespace RTLSpectrumAnalyzerGUI
         }
 
         private void RecordSeries2()
-        {            
+        {
+            commandBuffer.AddCommand("RecordSeries2");
+
+            commandBuffer.AddCommand("button5.Text: " + button5.Text);
+
             if (button5.Text == "Record Near Series Data")
             {
+                commandBuffer.AddCommand("check button3.Text == Stop Recording");
+
                 while (button3.Text == "Stop Recording")
                 {
                     Thread.Sleep(100);                
-                }
+                }                
 
                 recordingSeries2Start = Environment.TickCount;
 
@@ -1981,6 +1957,8 @@ namespace RTLSpectrumAnalyzerGUI
                 recordingSeries2 = true;
 
                 startRecordingSeries2 = false;
+
+                commandBuffer.AddCommand("startRecordingSeries2 = false");
 
                 bool exitOnRequiredZoomedFrames = false;
 
@@ -1990,8 +1968,11 @@ namespace RTLSpectrumAnalyzerGUI
                     radioButton4.Checked = true;
                 }
 
+                commandBuffer.AddCommand("Task.Factory.StartNew1");
+
                 Task.Factory.StartNew(() =>
                 {
+                    commandBuffer.AddCommand("Task.Factory.StartNew2");
                     bool userNear = true;
 
                     nearFarBufferIndex = currentBufferFramesObject.bufferFrames.currentBufferIndex;
@@ -2597,6 +2578,8 @@ namespace RTLSpectrumAnalyzerGUI
                         button17.Enabled = true;
                         button18.Enabled = true;
 
+                        listBox3.Items.Add("startRecordingSeries2: " + startRecordingSeries2);
+                        
                         if (startRecordingSeries1)
                             RecordSeries1();
                         else
@@ -3167,23 +3150,6 @@ namespace RTLSpectrumAnalyzerGUI
             }            
         }
 
-
-        private void ShowQuickStartFormThread(Object myObject, EventArgs myEventArgs)
-        {
-            if (eventTimer != null)
-            {
-                eventTimer.Stop();
-
-                eventTimer.Interval = 10000000;
-
-                eventTimer.Dispose();
-
-                eventTimer = null;
-
-                ShowQuickStartForm();
-            }
-        }
-
         private void ShowQuickStartForm()
         {            
             quickStartForm = new quickStartForm(this);
@@ -3290,11 +3256,7 @@ namespace RTLSpectrumAnalyzerGUI
 
             mainForm.WindowState = FormWindowState.Maximized;
 
-            eventTimer = new System.Windows.Forms.Timer();
-            eventTimer.Tick += new EventHandler(ShowQuickStartFormThread);
-            eventTimer.Interval = 1000;
-
-            eventTimer.Start();
+            LaunchNewThread(ShowQuickStartFormThread, 1000);            
 
             mainForm.Hide();
         }
@@ -3370,13 +3332,7 @@ namespace RTLSpectrumAnalyzerGUI
         {
             if (eventTimer != null)
             {
-                eventTimer.Stop();
-
-                eventTimer.Interval = 10000000;
-
-                eventTimer.Dispose();
-
-                eventTimer = null;
+                DestroyEventTimer();
 
                 NewSettings(false);                
             }            
@@ -3386,13 +3342,7 @@ namespace RTLSpectrumAnalyzerGUI
         {
             if (eventTimer != null)
             {
-                eventTimer.Stop();
-
-                eventTimer.Interval = 10000000;
-
-                eventTimer.Dispose();
-
-                eventTimer = null;
+                DestroyEventTimer();
 
                 ZoomOutOfFrequency();
             }            
@@ -3492,12 +3442,7 @@ namespace RTLSpectrumAnalyzerGUI
                         if (button5.Text == "Stop Recording")
                         button5.PerformClick();
 
-                    eventTimer = new System.Windows.Forms.Timer();
-
-                    eventTimer.Tick += new EventHandler(NewSettingsThread);
-                    eventTimer.Interval = 1000;
-                    
-                    eventTimer.Start();                    
+                    LaunchNewThread(NewSettingsThread, 1000);                    
                 }
             }
         }
