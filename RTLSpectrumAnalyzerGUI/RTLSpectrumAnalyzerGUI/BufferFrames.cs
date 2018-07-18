@@ -18,12 +18,14 @@ namespace RTLSpectrumAnalyzerGUI
 
         public const uint TRANSITION_LENGTH = 8 * 1000;
 
-        #if (SDR_DEBUG)
+#if (SDR_DEBUG)
             public const long BUFFER_TIME_LENGTH = 30 * 1000;        
+            public const long TIME_DELAY_BEFORE_ZOOMING_BEFORE_ANALYZING_TRANSITIONS = 10 * 1000;
+            public const long TIME_DELAY_BEFORE_ZOOMING = 3 * 1000;
+#else
+        public const long BUFFER_TIME_LENGTH = 60 * 1000;
+            public const long TIME_DELAY_BEFORE_ZOOMING_BEFORE_ANALYZING_TRANSITIONS = 60 * 1000;
             public const long TIME_DELAY_BEFORE_ZOOMING = 10 * 1000;
-        #else
-            public const long BUFFER_TIME_LENGTH = 60 * 1000;
-            public const long TIME_DELAY_BEFORE_ZOOMING = 60 * 1000;
         #endif
 
         public const long ZOOMED_IN_TRANSISTION_FRAMES_EXIT = 4;
@@ -747,7 +749,13 @@ namespace RTLSpectrumAnalyzerGUI
 
         public void Flush(BinData farSeries, BinData nearSeries, BinData indeterminateSeries)
         {
-            BinData targetBinData;         
+            BinData targetBinData;
+
+            if (farSeries.totalBinArray.Length == 0)
+            {
+                farSeries.totalBinArray = new float[nearSeries.totalBinArray.Length];
+                farSeries.totalBinArrayNumberOfFrames = new float[nearSeries.totalBinArrayNumberOfFrames.Length];
+            }
 
             minFrameIndex = bufferFramesArray.Count;
 
@@ -773,7 +781,7 @@ namespace RTLSpectrumAnalyzerGUI
 
                 if (targetBinData != null)
                 {
-                    int k = 0;
+                    int k = 0;                    
 
                     for (long j = lowerIndex; j < upperIndex; j++)
                     {

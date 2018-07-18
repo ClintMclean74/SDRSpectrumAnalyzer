@@ -171,6 +171,7 @@
             this.label29 = new System.Windows.Forms.Label();
             this.label30 = new System.Windows.Forms.Label();
             this.textBox18 = new System.Windows.Forms.TextBox();
+            this.label31 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.chart1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.chart2)).BeginInit();
             this.groupBox1.SuspendLayout();
@@ -435,7 +436,7 @@
             // 
             // button8
             // 
-            this.button8.Location = new System.Drawing.Point(1278, 1012);
+            this.button8.Location = new System.Drawing.Point(1515, 1008);
             this.button8.Margin = new System.Windows.Forms.Padding(4);
             this.button8.Name = "button8";
             this.button8.Size = new System.Drawing.Size(179, 48);
@@ -934,10 +935,11 @@
             // 
             this.listBox1.FormattingEnabled = true;
             this.listBox1.ItemHeight = 16;
-            this.listBox1.Location = new System.Drawing.Point(1288, 873);
+            this.listBox1.Location = new System.Drawing.Point(1293, 896);
             this.listBox1.Name = "listBox1";
-            this.listBox1.Size = new System.Drawing.Size(198, 132);
+            this.listBox1.Size = new System.Drawing.Size(203, 132);
             this.listBox1.TabIndex = 44;
+            this.listBox1.SelectedIndexChanged += new System.EventHandler(this.listBox1_SelectedIndexChanged);
             // 
             // button14
             // 
@@ -1330,7 +1332,7 @@
             // 
             // button19
             // 
-            this.button19.Location = new System.Drawing.Point(1395, 1015);
+            this.button19.Location = new System.Drawing.Point(1632, 1011);
             this.button19.Margin = new System.Windows.Forms.Padding(4);
             this.button19.Name = "button19";
             this.button19.Size = new System.Drawing.Size(76, 27);
@@ -1626,11 +1628,22 @@
             this.textBox18.Size = new System.Drawing.Size(118, 22);
             this.textBox18.TabIndex = 90;
             // 
+            // label31
+            // 
+            this.label31.AutoSize = true;
+            this.label31.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label31.Location = new System.Drawing.Point(1296, 873);
+            this.label31.Name = "label31";
+            this.label31.Size = new System.Drawing.Size(193, 17);
+            this.label31.TabIndex = 92;
+            this.label31.Text = "(Select frequency to zoom in)";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1914, 1042);
+            this.Controls.Add(this.label31);
             this.Controls.Add(this.label30);
             this.Controls.Add(this.textBox18);
             this.Controls.Add(this.label29);
@@ -1868,6 +1881,7 @@
         private System.Windows.Forms.Label label29;
         private System.Windows.Forms.Label label30;
         public System.Windows.Forms.TextBox textBox18;
+        private System.Windows.Forms.Label label31;
     }
 }
 
