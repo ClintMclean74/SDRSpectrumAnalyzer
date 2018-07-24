@@ -141,16 +141,20 @@ namespace RTLSpectrumAnalyzerGUI
                 double distance = this.GetMovementOverTime(1000);
 
                 if (distance > 100)
-                if (mainForm.recordingSeries1 && GUIInput.lastInputTime - mainForm.recordingSeries1Start > GUIInput.AFTER_RECORD_FAR_INPUT_BUFFER)
-                {                    
-                    mainForm.recordingSeries2 = true;
-                    mainForm.recordingSeries1 = false;
-
+                    if (mainForm.recordingSeries1 && GUIInput.lastInputTime - mainForm.recordingSeries1Start > GUIInput.AFTER_RECORD_FAR_INPUT_BUFFER)
+                    {
                         mainForm.currentBufferFramesObject.transitionBufferFrames.nearIndex = mainForm.currentBufferFramesObject.bufferFrames.currentBufferIndex - 1;
 
                         if (mainForm.currentBufferFramesObject.transitionBufferFrames.nearIndex < 0)
                             mainForm.currentBufferFramesObject.transitionBufferFrames.nearIndex = mainForm.currentBufferFramesObject.transitionBufferFrames.bufferFramesArray.Count - 1;
-                }                
+
+                        mainForm.StopRecording();
+
+                        mainForm.commandQueue.AddCommand("RecordSeries2");
+
+                        ////mainForm.recordingSeries2 = true;
+                        ////mainForm.recordingSeries1 = false;
+                    }             
             }
 
             prevCoord.X = currentCoord.X;
@@ -213,13 +217,14 @@ namespace RTLSpectrumAnalyzerGUI
             {
                 if (mainForm.recordingSeries1 && GUIInput.lastInputTime - mainForm.recordingSeries1Start > GUIInput.AFTER_RECORD_FAR_INPUT_BUFFER)
                 {
-                    mainForm.recordingSeries2 = true;
-                    mainForm.recordingSeries1 = false;
-
-                    mainForm.currentBufferFramesObject.transitionBufferFrames.nearIndex = mainForm.currentBufferFramesObject.bufferFrames.currentBufferIndex -1;
+                    mainForm.currentBufferFramesObject.transitionBufferFrames.nearIndex = mainForm.currentBufferFramesObject.bufferFrames.currentBufferIndex - 1;
 
                     if (mainForm.currentBufferFramesObject.transitionBufferFrames.nearIndex < 0)
                         mainForm.currentBufferFramesObject.transitionBufferFrames.nearIndex = mainForm.currentBufferFramesObject.transitionBufferFrames.bufferFramesArray.Count - 1;
+
+                    mainForm.StopRecording();
+
+                    mainForm.commandQueue.AddCommand("RecordSeries2");
                 }                
             }
 

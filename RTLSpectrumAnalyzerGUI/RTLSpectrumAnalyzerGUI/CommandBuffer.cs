@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace RTLSpectrumAnalyzerGUI
 {
-    class Command
+    public class Command
     {
         public string name;
         public long time;
@@ -16,7 +16,7 @@ namespace RTLSpectrumAnalyzerGUI
         }        
     }
 
-    class CommandBuffer
+    public class CommandBuffer
     {
         public const uint MAX_BUFFER_SIZE = 100;
 
@@ -63,8 +63,18 @@ namespace RTLSpectrumAnalyzerGUI
 
         public int RemoveCommand()
         {
-            if (commandArray.Count>0)
-                commandArray.RemoveAt(commandArray.Count-1);
+            if (commandCurrentBufferIndex!=-1)
+            {
+                commandArray.RemoveAt(commandCurrentBufferIndex);
+
+                if (commandCurrentBufferIndex == startBufferIndex)
+                    commandCurrentBufferIndex = -1;
+                else
+                    if (commandCurrentBufferIndex == 0)
+                        commandCurrentBufferIndex = commandArray.Count-1;
+                    else
+                        commandCurrentBufferIndex--;
+            }
 
             return commandArray.Count;
         }

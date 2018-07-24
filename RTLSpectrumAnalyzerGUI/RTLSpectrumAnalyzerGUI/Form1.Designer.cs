@@ -950,6 +950,7 @@
             this.button14.TabIndex = 6;
             this.button14.Text = "Reset";
             this.button14.UseVisualStyleBackColor = true;
+            this.button14.Visible = false;
             this.button14.Click += new System.EventHandler(this.button14_Click);
             // 
             // label15
@@ -1236,6 +1237,7 @@
             this.checkBox8.TabIndex = 64;
             this.checkBox8.Text = "Show Graph Data";
             this.checkBox8.UseVisualStyleBackColor = true;
+            this.checkBox8.CheckedChanged += new System.EventHandler(this.checkBox8_CheckedChanged);
             // 
             // label19
             // 
@@ -1299,10 +1301,11 @@
             this.checkBox9.CheckState = System.Windows.Forms.CheckState.Checked;
             this.checkBox9.Location = new System.Drawing.Point(1499, 792);
             this.checkBox9.Name = "checkBox9";
-            this.checkBox9.Size = new System.Drawing.Size(152, 38);
+            this.checkBox9.Size = new System.Drawing.Size(136, 38);
             this.checkBox9.TabIndex = 68;
-            this.checkBox9.Text = "Use automatic user\r\nproximitry detection";
+            this.checkBox9.Text = "Use automated\r\ndetection system";
             this.checkBox9.UseVisualStyleBackColor = true;
+            this.checkBox9.CheckedChanged += new System.EventHandler(this.checkBox9_CheckedChanged);
             // 
             // chart7
             // 

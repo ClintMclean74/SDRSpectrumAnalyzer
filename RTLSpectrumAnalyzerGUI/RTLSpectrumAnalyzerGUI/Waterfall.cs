@@ -424,24 +424,28 @@ namespace RTLSpectrumAnalyzerGUI
 
         static public double CalculateStrengthDifference(float[] array1, float[] array2, long frequencyIndex)
         {
-            if (array1[frequencyIndex] == 0)
+            /*////if (array1[frequencyIndex] == 0)
                 return 0;
 
             double dif = (array2[frequencyIndex] - array1[frequencyIndex]);
+            */
 
-            if (dif < 0)
+            /*////if (dif < 0)
                 return dif;
+                */
 
 
-            if (frequencyIndex == 0 || frequencyIndex == array1.Length - 1)
+            /*////if (frequencyIndex == 0 || frequencyIndex == array1.Length - 1)
                 return 0;
+                */
 
             /*////if (array1[frequencyIndex - 1] >= array1[frequencyIndex] || array1[frequencyIndex + 1] >= array1[frequencyIndex])
                 return 0;*/
 
-            double ratio1 = array1[frequencyIndex] / array1[frequencyIndex - 1];
+            /*////double ratio1 = array1[frequencyIndex] / array1[frequencyIndex - 1];
 
             double ratio2 = array1[frequencyIndex] / array1[frequencyIndex + 1];
+            */
 
             /*if (ratio1 > 0.9 && ratio1 < 1.1 && ratio2 > 0.9 && ratio2 < 1.1)
                 return 0;*/

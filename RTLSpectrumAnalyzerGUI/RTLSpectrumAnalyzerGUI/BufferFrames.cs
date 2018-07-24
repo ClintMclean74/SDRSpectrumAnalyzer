@@ -236,7 +236,7 @@ namespace RTLSpectrumAnalyzerGUI
 
         public double[] GetStrengthOverTimeForIndex(long index)
         {
-            if (currentTransitionBufferFramesArray.Count > 0)
+            /*////if (currentTransitionBufferFramesArray.Count > 0)
             {
                 int i = startBufferIndex;
 
@@ -261,6 +261,7 @@ namespace RTLSpectrumAnalyzerGUI
                 i = startBufferIndex;
 
                 k = 0;
+                
 
                 do
                 {
@@ -275,7 +276,26 @@ namespace RTLSpectrumAnalyzerGUI
 
                     i++;
                 }
-                while (i != currentBufferIndex + 1);
+                while (i != currentBufferIndex + 1);                
+
+                return values;
+            }*/
+
+
+            if (currentTransitionBufferFramesArray.Count > 0)
+            {
+                double totalStrengthValue;
+
+                double[] values = new double[currentTransitionBufferFramesArray.Count];
+
+                for (int i = 0; i < currentTransitionBufferFramesArray.Count; i++)
+                {
+                    totalStrengthValue = currentTransitionBufferFramesArray[i].bufferArray[index];
+
+                    totalStrengthValue = Math.Round(totalStrengthValue);
+
+                    values[i] = totalStrengthValue;
+                }
 
                 return values;
             }
