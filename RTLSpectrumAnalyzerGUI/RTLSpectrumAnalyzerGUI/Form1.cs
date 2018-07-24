@@ -2220,7 +2220,8 @@ namespace RTLSpectrumAnalyzerGUI
                     {
                         currentMode = BinDataMode.Near;
 
-                        if (programState == ProgramState.ANALYZING_TRANSITIONS && currentBufferFramesObject.transitionBufferFrames.nearIndex > -1 && currentBufferFramesObject.bufferFrames.currentBufferIndex > -1)
+                        ////if (programState == ProgramState.ANALYZING_TRANSITIONS && currentBufferFramesObject.transitionBufferFrames.nearIndex > -1 && currentBufferFramesObject.bufferFrames.currentBufferIndex > -1)
+                        if (currentBufferFramesObject.transitionBufferFrames.nearIndex > -1 && currentBufferFramesObject.bufferFrames.currentBufferIndex > -1)
                         {
                             ////BufferFramesObject zoomedOutBufferObject = bufferFramesArray.GetBufferFramesObject(0);
 
