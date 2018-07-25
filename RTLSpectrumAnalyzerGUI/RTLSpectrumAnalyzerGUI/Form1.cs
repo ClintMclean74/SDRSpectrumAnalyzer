@@ -1322,9 +1322,9 @@ namespace RTLSpectrumAnalyzerGUI
 
                     for (long j = i; j < segmentEnd && j < series1BinData.avgBinArray.Length && j < series2BinData.avgBinArray.Length; j++)
                     {
-                        frequency = (uint)(zoomedOutBufferObject.lowerFrequency + (i * binSize));
+                        frequency = (uint)(zoomedOutBufferObject.lowerFrequency + (j * binSize));
 
-                        dif = Waterfall.CalculateStrengthDifference(series1BinData.avgBinArray, series2BinData.avgBinArray, i);
+                        dif = Waterfall.CalculateStrengthDifference(series1BinData.avgBinArray, series2BinData.avgBinArray, j);
 
                         ////absDif = dif;
 
@@ -1338,7 +1338,7 @@ namespace RTLSpectrumAnalyzerGUI
                         if (dif > maxSignalStrength || Double.IsNaN(maxSignalStrength))
                         {
                             maxSignalStrength = dif;
-                            maxIndex = i;
+                            maxIndex = (int) j;
 
                             maxFrequency = frequency;
                         }
@@ -1889,24 +1889,26 @@ namespace RTLSpectrumAnalyzerGUI
 
             long frequency;
 
+            BufferFramesObject zoomedOutBufferObject = bufferFramesArray.GetBufferFramesObject(0);
+
             for (long j = 0; j < series1BinData.totalBinArray.Length; j++)
             {
+                frequency = (uint)(zoomedOutBufferObject.lowerFrequency + (j * binSize));
+
                 dif = Waterfall.CalculateStrengthDifference(series1BinData.totalBinArray, series2BinData.totalBinArray, j);
 
                 if (!Double.IsInfinity(dif) && (dif < 0.01 || dif > 400) && series1BinData.totalBinArrayNumberOfFrames[j]>10 && series2BinData.totalBinArrayNumberOfFrames[j] > 10)
-                {
-                    frequency = (uint)(dataLowerFrequency + (j * binSize));
-
+                {                    
                     if (recordingSeries2)
                     {
-                        series1BinData.totalBinArray[j] = 0;
-                        series1BinData.totalBinArrayNumberOfFrames[j] = 0;
+                        series1BinData.totalBinArray[j] = 0.01f;
+                        series1BinData.totalBinArrayNumberOfFrames[j] = 1;
                     }
                     else
                         if (recordingSeries1)
                         {
-                            series2BinData.totalBinArray[j] = 0;
-                            series2BinData.totalBinArrayNumberOfFrames[j] = 0;
+                            series2BinData.totalBinArray[j] = 0.01f;
+                            series2BinData.totalBinArrayNumberOfFrames[j] = 1;
                         }
                 }                
             }

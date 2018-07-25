@@ -102,7 +102,13 @@ namespace RTLSpectrumAnalyzerGUI
                     return -1;
                     */
 
-                if (x.strength < y.strength)
+                if (x == null)
+                    return 1;
+
+                if (y == null)
+                    return -1;
+
+                if (x==null || x.strength < y.strength)
                     return 1;
                 else if (x.strength == y.strength)
                     return 0;
