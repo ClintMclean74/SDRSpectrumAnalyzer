@@ -444,8 +444,10 @@ namespace RTLSpectrumAnalyzerGUI
                         transitionsStrengthArray = GetAveragedStrengthOverTimeForIndex(j);
                         ////transitionsStrengthArray = GetStrengthOverTimeForIndex(j);                        
 
-                        gradientStrength = SignalDataUtilities.Series2ndVS1stHalfAvgStrength(transitionsStrengthArray);
-                        
+                        ////gradientStrength = SignalDataUtilities.Series2ndVS1stHalfAvgStrength(transitionsStrengthArray);
+
+                        gradientStrength = SignalDataUtilities.Series2ndVS1stHalfAvgStrength(transitionsStrengthArray) * transitions;
+
                         if (Double.IsNaN(maxGradientStrength) || gradientStrength > maxGradientStrength)
                         {
                             maxGradientStrength = gradientStrength;
@@ -696,9 +698,9 @@ namespace RTLSpectrumAnalyzerGUI
         public uint GetFramesCountForFrequencyRegion(long lowerFrequency, long upperFrequency, BinDataMode mode)
         {
             BufferFramesObject zoomedOutBufferObject = mainForm.bufferFramesArray.GetBufferFramesObject(0);
-
-            long lowerIndex = (long)((lowerFrequency - zoomedOutBufferObject.lowerFrequency) / mainForm.binSize);
-            long upperIndex = (long)((upperFrequency - zoomedOutBufferObject.lowerFrequency) / mainForm.binSize);
+            
+            long lowerIndex = (long)((lowerFrequency - zoomedOutBufferObject.lowerFrequency) / zoomedOutBufferObject.binSize);
+            long upperIndex = (long)((upperFrequency - zoomedOutBufferObject.lowerFrequency) / zoomedOutBufferObject.binSize);
 
             uint frames = 0;
 
@@ -780,9 +782,9 @@ namespace RTLSpectrumAnalyzerGUI
             minFrameIndex = bufferFramesArray.Count;
 
             BufferFramesObject zoomedOutBufferObject = mainForm.bufferFramesArray.GetBufferFramesObject(0);
-
-            long lowerIndex = (long)((parent.lowerFrequency - zoomedOutBufferObject.lowerFrequency) / mainForm.binSize);
-            long upperIndex = (long)((parent.upperFrequency - zoomedOutBufferObject.lowerFrequency) / mainForm.binSize);
+            
+            long lowerIndex = (long)((parent.lowerFrequency - zoomedOutBufferObject.lowerFrequency) / zoomedOutBufferObject.binSize);
+            long upperIndex = (long)((parent.upperFrequency - zoomedOutBufferObject.lowerFrequency) / zoomedOutBufferObject.binSize);
 
             for (int i = 0; i < bufferFramesArray.Count; i++)
             {

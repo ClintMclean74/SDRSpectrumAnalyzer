@@ -172,6 +172,10 @@
             this.label30 = new System.Windows.Forms.Label();
             this.textBox18 = new System.Windows.Forms.TextBox();
             this.label31 = new System.Windows.Forms.Label();
+            this.button25 = new System.Windows.Forms.Button();
+            this.listBox4 = new System.Windows.Forms.ListBox();
+            this.label32 = new System.Windows.Forms.Label();
+            this.label33 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.chart1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.chart2)).BeginInit();
             this.groupBox1.SuspendLayout();
@@ -935,7 +939,7 @@
             // 
             this.listBox1.FormattingEnabled = true;
             this.listBox1.ItemHeight = 16;
-            this.listBox1.Location = new System.Drawing.Point(1293, 896);
+            this.listBox1.Location = new System.Drawing.Point(1312, 896);
             this.listBox1.Name = "listBox1";
             this.listBox1.Size = new System.Drawing.Size(203, 132);
             this.listBox1.TabIndex = 44;
@@ -943,7 +947,7 @@
             // 
             // button14
             // 
-            this.button14.Location = new System.Drawing.Point(1423, 800);
+            this.button14.Location = new System.Drawing.Point(187, 855);
             this.button14.Margin = new System.Windows.Forms.Padding(4);
             this.button14.Name = "button14";
             this.button14.Size = new System.Drawing.Size(67, 30);
@@ -957,11 +961,11 @@
             // 
             this.label15.AutoSize = true;
             this.label15.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label15.Location = new System.Drawing.Point(1291, 794);
+            this.label15.Location = new System.Drawing.Point(1684, 881);
             this.label15.Name = "label15";
-            this.label15.Size = new System.Drawing.Size(105, 36);
+            this.label15.Size = new System.Drawing.Size(192, 18);
             this.label15.TabIndex = 45;
-            this.label15.Text = "Leaderboard\r\nFor All Frames";
+            this.label15.Text = "Leaderboard For All Frames";
             // 
             // checkBox3
             // 
@@ -1490,7 +1494,7 @@
             // 
             this.listBox3.FormattingEnabled = true;
             this.listBox3.ItemHeight = 16;
-            this.listBox3.Location = new System.Drawing.Point(1775, 903);
+            this.listBox3.Location = new System.Drawing.Point(62, 801);
             this.listBox3.Name = "listBox3";
             this.listBox3.Size = new System.Drawing.Size(281, 116);
             this.listBox3.TabIndex = 81;
@@ -1542,7 +1546,7 @@
             // 
             this.label27.AutoSize = true;
             this.label27.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label27.Location = new System.Drawing.Point(1285, 837);
+            this.label27.Location = new System.Drawing.Point(1304, 837);
             this.label27.Name = "label27";
             this.label27.Size = new System.Drawing.Size(228, 34);
             this.label27.TabIndex = 86;
@@ -1635,17 +1639,62 @@
             // 
             this.label31.AutoSize = true;
             this.label31.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label31.Location = new System.Drawing.Point(1296, 873);
+            this.label31.Location = new System.Drawing.Point(1315, 873);
             this.label31.Name = "label31";
             this.label31.Size = new System.Drawing.Size(193, 17);
             this.label31.TabIndex = 92;
             this.label31.Text = "(Select frequency to zoom in)";
+            // 
+            // button25
+            // 
+            this.button25.Location = new System.Drawing.Point(1198, 795);
+            this.button25.Margin = new System.Windows.Forms.Padding(4);
+            this.button25.Name = "button25";
+            this.button25.Size = new System.Drawing.Size(105, 81);
+            this.button25.TabIndex = 93;
+            this.button25.Text = "Analyze\r\nCenter\r\nFrequency";
+            this.button25.UseVisualStyleBackColor = true;
+            this.button25.Click += new System.EventHandler(this.button25_Click);
+            // 
+            // listBox4
+            // 
+            this.listBox4.FormattingEnabled = true;
+            this.listBox4.ItemHeight = 16;
+            this.listBox4.Location = new System.Drawing.Point(1687, 917);
+            this.listBox4.Name = "listBox4";
+            this.listBox4.Size = new System.Drawing.Size(190, 116);
+            this.listBox4.TabIndex = 94;
+            this.listBox4.SelectedIndexChanged += new System.EventHandler(this.listBox4_SelectedIndexChanged);
+            // 
+            // label32
+            // 
+            this.label32.AutoSize = true;
+            this.label32.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label32.Location = new System.Drawing.Point(1347, 799);
+            this.label32.Name = "label32";
+            this.label32.Size = new System.Drawing.Size(127, 36);
+            this.label32.TabIndex = 95;
+            this.label32.Text = "Interesting Signals\r\nFor All Frames";
+            // 
+            // label33
+            // 
+            this.label33.AutoSize = true;
+            this.label33.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label33.Location = new System.Drawing.Point(1684, 899);
+            this.label33.Name = "label33";
+            this.label33.Size = new System.Drawing.Size(193, 17);
+            this.label33.TabIndex = 96;
+            this.label33.Text = "(Select frequency to zoom in)";
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1914, 1042);
+            this.Controls.Add(this.label33);
+            this.Controls.Add(this.label32);
+            this.Controls.Add(this.listBox4);
+            this.Controls.Add(this.button25);
             this.Controls.Add(this.label31);
             this.Controls.Add(this.label30);
             this.Controls.Add(this.textBox18);
@@ -1885,6 +1934,10 @@
         private System.Windows.Forms.Label label30;
         public System.Windows.Forms.TextBox textBox18;
         private System.Windows.Forms.Label label31;
+        private System.Windows.Forms.Button button25;
+        private System.Windows.Forms.ListBox listBox4;
+        private System.Windows.Forms.Label label32;
+        private System.Windows.Forms.Label label33;
     }
 }
 

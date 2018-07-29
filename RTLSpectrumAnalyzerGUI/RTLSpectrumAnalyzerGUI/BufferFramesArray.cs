@@ -138,16 +138,20 @@ namespace RTLSpectrumAnalyzerGUI
         public long lowerFrequency;
         public long upperFrequency;
 
+        public double binSize;
+
         public bool possibleReradiatedFrequencyRange = true;
 
         public bool[] options = new bool[10];
 
         public int reradiatedRankingCategory = 1;
 
-        public BufferFramesObject(Form1 mainForm, long lowerFrequency, long upperFrequency)
+        public BufferFramesObject(Form1 mainForm, long lowerFrequency, long upperFrequency, double binSize)
         {
             this.lowerFrequency = lowerFrequency;
             this.upperFrequency = upperFrequency;
+
+            this.binSize = binSize;
 
             bufferFrames = new BufferFrames(mainForm, this);
 
@@ -174,7 +178,9 @@ namespace RTLSpectrumAnalyzerGUI
         public void SaveData(BinaryWriter writer)
         {
             writer.Write((UInt32)this.lowerFrequency);
-            writer.Write((UInt32)this.upperFrequency);            
+            writer.Write((UInt32)this.upperFrequency);
+
+            writer.Write(this.binSize);
 
             bufferFrames.SaveData(writer);
             transitionBufferFrames.SaveData(writer);            
@@ -183,7 +189,8 @@ namespace RTLSpectrumAnalyzerGUI
         public void LoadData(BinaryReader reader)
         {
             lowerFrequency = reader.ReadUInt32();
-            upperFrequency = reader.ReadUInt32();            
+            upperFrequency = reader.ReadUInt32();
+            binSize = reader.ReadDouble();
 
             bufferFrames.LoadData(reader);
             transitionBufferFrames.LoadData(reader);
@@ -225,7 +232,7 @@ namespace RTLSpectrumAnalyzerGUI
 
             for (int i = 0; i < bufferFramesObjectsLength; i++)
             {
-                bufferFramesObjects.Add(new BufferFramesObject(mainForm, 0, 0));
+                bufferFramesObjects.Add(new BufferFramesObject(mainForm, 0, 0, 0));
 
                 bufferFramesObjects[bufferFramesObjects.Count-1].LoadData(reader);
 

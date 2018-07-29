@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.IO;
 
 namespace RTLSpectrumAnalyzerGUI
 {
@@ -36,6 +35,47 @@ namespace RTLSpectrumAnalyzerGUI
             this.strengthDif = strengthDif;
 
             this.frequency = frequency;
+        }
+
+        public void LoadData(BinaryReader reader)
+        {
+            this.frequency = reader.ReadUInt32();
+            this.index = reader.ReadInt32();
+
+            this.strength = reader.ReadDouble();
+            this.strengthDif = reader.ReadDouble();
+            this.rating = reader.ReadDouble();
+            this.totalChange = reader.ReadDouble();
+            this.avgChange = reader.ReadDouble();
+
+            this.avgCount = reader.ReadInt32();
+
+            this.maxStrength = reader.ReadDouble();
+            this.minStrength = reader.ReadDouble();
+            this.maxAvgStrength = reader.ReadDouble();
+            this.minAvgStrength = reader.ReadDouble();
+
+            this.invertedDif = reader.ReadBoolean();
+        }
+
+        public void SaveData(BinaryWriter writer)
+        {
+            writer.Write((UInt32)this.frequency);
+            writer.Write((UInt32)this.index);
+            writer.Write(this.strength);
+            writer.Write(this.strengthDif);
+
+            writer.Write(this.rating);
+
+            writer.Write(this.totalChange);
+            writer.Write(this.avgChange);
+            writer.Write((UInt32)this.avgCount);
+            writer.Write(this.maxStrength);
+            writer.Write(this.minStrength);
+            writer.Write(this.maxAvgStrength);
+            writer.Write(this.minAvgStrength);
+
+            writer.Write(this.invertedDif);
         }
 
         public void Set(int index, double strength, double strengthDif, double frequency)

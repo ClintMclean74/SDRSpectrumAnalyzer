@@ -381,9 +381,9 @@ namespace RTLSpectrumAnalyzerGUI
 
             // Clean up
             g.Dispose();
-        }
+        }      
 
-        static public double GetSurroundNoiseFloorStrength(float[] array1, long frequencyIndex, long width)
+        static public double GetSurroundNoiseFloorStrength(float[] array, long frequencyIndex, long width)
         {
             if (frequencyIndex < width / 2)
             {
@@ -392,20 +392,20 @@ namespace RTLSpectrumAnalyzerGUI
                 frequencyIndex = width / 2;
             }
 
-            if (frequencyIndex + width / 2 >= array1.Length)
+            if (frequencyIndex + width / 2 >= array.Length)
             {
-                width = ((array1.Length - frequencyIndex) * 2);
+                width = ((array.Length - frequencyIndex) * 2);
 
-                width = width / 2 + (width / 2 - (array1.Length - frequencyIndex));
+                width = width / 2 + (width / 2 - (array.Length - frequencyIndex));
 
-                frequencyIndex = array1.Length - width / 2;
+                frequencyIndex = array.Length - width / 2;
             }
 
             double totalStrength = 0;
 
             for (long i = frequencyIndex - width / 2; i < frequencyIndex + width / 2; i++)
             {
-                totalStrength += array1[i];
+                totalStrength += array[i];
             }
 
             return totalStrength /= width;
@@ -474,9 +474,15 @@ namespace RTLSpectrumAnalyzerGUI
 
             ////double ratio = dif / array1[frequencyIndex];
 
-            double ratio = array2[frequencyIndex] / array1[frequencyIndex] * 100;
-            
 
+            double array2NearestPeakStrength = SignalDataUtilities.GetNearestPeakStrength(array2, frequencyIndex);
+            double array1NearestPeakStrength = SignalDataUtilities.GetNearestPeakStrength(array1, frequencyIndex);           
+
+            ////double ratio = array2NearestPeakStrength / array1NearestPeakStrength * 100;
+
+            double ratio = array2[frequencyIndex] / array1NearestPeakStrength * 100;
+
+            ////double ratio = array2[frequencyIndex] / array1[frequencyIndex] * 100;
 
             ////return ratio * Math.Abs(strength2) + ratio * (Math.Abs(strength2) /100);
 

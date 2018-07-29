@@ -4,6 +4,23 @@ namespace RTLSpectrumAnalyzerGUI
 {
     public class SignalDataUtilities
     {
+        public static double GetNearestPeakStrength(float[] array, long frequencyIndex, uint width=2)
+        {
+            long rightIndex = frequencyIndex;
+            long leftIndex = frequencyIndex;
+
+            while (rightIndex < array.Length - 2 && rightIndex<(frequencyIndex + width) && array[rightIndex + 1] > array[rightIndex])
+                rightIndex++;
+
+            while (leftIndex > 0 && leftIndex > (frequencyIndex - width) && array[leftIndex - 1] > array[leftIndex])
+                leftIndex--;
+
+            if (array[rightIndex] >= array[leftIndex])
+                return array[rightIndex];
+            else
+                return array[leftIndex];
+        }
+
         public static double CalculateGradient(double[] data)
         {
             double totalGradients = 0;
