@@ -130,7 +130,7 @@ namespace RTLSpectrumAnalyzerGUI
 
         short MAX_LEADER_BOARD_LIST_COUNT = 100;
         short MAX_INTERESTING_SIGNAL_LIST_COUNT = 100;
-        short MAX_INTERESTING_SIGNAL_LIST_BOX_COUNT = 8;
+        short MAX_INTERESTING_SIGNAL_LIST_BOX_COUNT = 100;
 
         string evaluatedFrequencyString = "";
 
@@ -215,6 +215,8 @@ namespace RTLSpectrumAnalyzerGUI
         public bool zoomingAnalysis = true;
 
         public int analyzingTransitionsBeforeSuccessCount = 0;
+
+        public bool showGraphs = true;
 
         public long GetAverageNumberOfFramesForFrequencyRegion(BinData binData, BinDataMode binDataMode, long lowerFrequency, long upperFrequency, long dataLowerFrequency, double binSize)
         {
@@ -1443,10 +1445,12 @@ namespace RTLSpectrumAnalyzerGUI
                         return -1;
                 });
 
-
-                    for (int j = leaderBoardSignals.Count - 1; j >= MAX_LEADER_BOARD_LIST_COUNT; j--)
+                    if (leaderBoardSignals.Count > MAX_LEADER_BOARD_LIST_COUNT * 4)
                     {
-                        leaderBoardSignals.RemoveAt(j);
+                        for (int j = leaderBoardSignals.Count - 1; j >= MAX_LEADER_BOARD_LIST_COUNT; j--)
+                        {
+                            leaderBoardSignals.RemoveAt(j);
+                        }
                     }
 
                     listBox4.Items.Clear();
@@ -1923,7 +1927,8 @@ namespace RTLSpectrumAnalyzerGUI
 
         private void SetButtonsToNotRecordingState()
         {
-            checkBox8.Checked = true;
+            if (showGraphs)
+                checkBox8.Checked = true;
 
             button4.Enabled = true;
             button22.Enabled = button23.Enabled = button24.Enabled = button4.Enabled;
@@ -1989,10 +1994,13 @@ namespace RTLSpectrumAnalyzerGUI
 
                 recordingSeries1Start = Environment.TickCount;
 
-                if (analyzingNearFarTransitions || !automatedZooming || !checkBox9.Checked)
-                    checkBox8.Checked = true;
-                else
-                    checkBox8.Checked = false;
+                if (showGraphs)
+                {
+                    if (analyzingNearFarTransitions || !automatedZooming || !checkBox9.Checked)
+                        checkBox8.Checked = true;
+                    else
+                        checkBox8.Checked = false;
+                }
 
                 framesDif = 0;
 
@@ -3965,11 +3973,15 @@ namespace RTLSpectrumAnalyzerGUI
         private void checkBox9_CheckedChanged(object sender, EventArgs e)
         {
             if (!checkBox9.Checked)
+            {
                 checkBox8.Checked = true;
+                showGraphs = true;
+            }
         }
 
         private void checkBox8_CheckedChanged(object sender, EventArgs e)
         {
+            showGraphs = false;
         }
 
         private void button25_Click(object sender, EventArgs e)

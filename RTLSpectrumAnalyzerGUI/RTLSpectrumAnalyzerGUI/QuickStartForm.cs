@@ -16,13 +16,15 @@ namespace RTLSpectrumAnalyzerGUI
 
         private void button4_Click(object sender, EventArgs e)
         {
+            mainForm.checkBox8.Checked = mainForm.showGraphs = checkBox1.Checked;
+
             if (checkBox10.Checked)
                 mainForm.LoadData("session.rtl");                
             else
             {
                 mainForm.textBox1.Text = textBox1.Text;
                 mainForm.textBox2.Text = textBox2.Text;
-                mainForm.textBox3.Text = textBox3.Text;
+                mainForm.textBox3.Text = textBox3.Text;                
 
                 mainForm.button4.PerformClick();
             }            
