@@ -66,18 +66,39 @@ namespace RTLSpectrumAnalyzerGUI
             }
 
 
-            bool decreasingSignal=false, increasingSignal = false;
+            bool decreasingSignal=false, increasingSignal = false, invalidSignal = false;
+
+            int centerIndex = segmentStrengths.Length / 2 - 1;
 
             for (int i = 0; i < percentageIncrements.Length-1; i++)
             {
-                if (percentageIncrements[i + 1] < percentageIncrements[i] * 0.8)
+                /*////if (percentageIncrements[i + 1] < percentageIncrements[i] * 0.8)
                     decreasingSignal = true;
 
                 if (percentageIncrements[i + 1] > percentageIncrements[i] * 1.2)
                     increasingSignal=true;
+                    */
+
+                if (percentageIncrements[i + 1] < 80)
+                    decreasingSignal = true;
+
+                if (percentageIncrements[i + 1] > 120)
+                    increasingSignal = true;
+
+                if (i >= centerIndex && percentageIncrements[i + 1] > 150)
+                {
+                    invalidSignal = true;
+                    break;
+                }
+                else
+                    if (i >= centerIndex && percentageIncrements[i+1] < 50)
+                    {
+                        invalidSignal = true;
+                        break;
+                    }
             }
 
-            if (decreasingSignal && increasingSignal)
+            if ((decreasingSignal && increasingSignal) || invalidSignal)
                 return 100;
 
             double avgStrengthIncrement = 0;

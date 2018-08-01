@@ -131,6 +131,7 @@ namespace RTLSpectrumAnalyzerGUI
         short MAX_LEADER_BOARD_LIST_COUNT = 100;
         short MAX_INTERESTING_SIGNAL_LIST_COUNT = 100;
         short MAX_INTERESTING_SIGNAL_LIST_BOX_COUNT = 100;
+        short MAX_INTERESTING_SIGNALS_FOR_EVALUATION_COUNT = 8;
 
         string evaluatedFrequencyString = "";
 
@@ -350,7 +351,7 @@ namespace RTLSpectrumAnalyzerGUI
 
         private int DetermineSignalForAcquiringFrames()
         {
-            for (int i = 0; i < interestingSignalsForAnalysis.Count && i < MAX_INTERESTING_SIGNAL_LIST_BOX_COUNT; i++)
+            for (int i = 0; i < interestingSignalsForAnalysis.Count && i < MAX_INTERESTING_SIGNALS_FOR_EVALUATION_COUNT; i++)
             {
                 Utilities.FrequencyRange frequencyRange = Utilities.GetFrequencyRangeFromFrequency((long)interestingSignalsForAnalysis[i].frequency);
 
@@ -375,7 +376,7 @@ namespace RTLSpectrumAnalyzerGUI
             long minFrames = -1;
             int minIndex = -1;
 
-            for (int i = 0; i < interestingSignalsForAnalysis.Count && i < MAX_INTERESTING_SIGNAL_LIST_BOX_COUNT; i++)
+            for (int i = 0; i < interestingSignalsForAnalysis.Count && i < MAX_INTERESTING_SIGNALS_FOR_EVALUATION_COUNT; i++)
             {
                 Utilities.FrequencyRange frequencyRange = Utilities.GetFrequencyRangeFromFrequency((long)interestingSignalsForAnalysis[i].frequency);
 
@@ -403,7 +404,7 @@ namespace RTLSpectrumAnalyzerGUI
         {
             for (int j = 0; j < BufferFrames.minStrengthForRankings.Length; j++)
             {
-                for (int i = 0; i < interestingSignalsForAnalysis.Count && i < MAX_INTERESTING_SIGNAL_LIST_BOX_COUNT; i++)
+                for (int i = 0; i < interestingSignalsForAnalysis.Count && i < MAX_INTERESTING_SIGNALS_FOR_EVALUATION_COUNT; i++)
                 {
                     Utilities.FrequencyRange frequencyRange = Utilities.GetFrequencyRangeFromFrequency((long)interestingSignalsForAnalysis[i].frequency);
 
@@ -2001,6 +2002,8 @@ namespace RTLSpectrumAnalyzerGUI
                     else
                         checkBox8.Checked = false;
                 }
+                else
+                    checkBox8.Checked = false;
 
                 framesDif = 0;
 
@@ -3981,7 +3984,7 @@ namespace RTLSpectrumAnalyzerGUI
 
         private void checkBox8_CheckedChanged(object sender, EventArgs e)
         {
-            showGraphs = false;
+            ////showGraphs = false;
         }
 
         private void button25_Click(object sender, EventArgs e)
