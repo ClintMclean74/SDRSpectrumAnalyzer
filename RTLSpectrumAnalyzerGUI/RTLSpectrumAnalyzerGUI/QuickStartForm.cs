@@ -26,10 +26,10 @@ namespace RTLSpectrumAnalyzerGUI
                 mainForm.textBox2.Text = textBox2.Text;
                 mainForm.textBox3.Text = textBox3.Text;                
 
-                mainForm.button4.PerformClick();
+                mainForm.ActivateSettings();
             }            
 
-            mainForm.button5.PerformClick();
+            mainForm.RecordSeries2();
 
             this.Hide();
         }

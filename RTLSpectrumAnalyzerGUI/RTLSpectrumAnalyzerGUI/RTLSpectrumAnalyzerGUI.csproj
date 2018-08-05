@@ -13,6 +13,7 @@
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile>
     </TargetFrameworkProfile>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -25,7 +26,6 @@
     <MapFileExtensions>true</MapFileExtensions>
     <ApplicationRevision>0</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
-    <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
@@ -55,7 +55,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
     <DebugSymbols>true</DebugSymbols>
     <OutputPath>..\..\Build\</OutputPath>
-    <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;SDR_DEBUG</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DebugType>full</DebugType>
     <PlatformTarget>x86</PlatformTarget>
@@ -142,6 +142,18 @@
     </Compile>
     <Compile Include="SignalDataUtilities.cs" />
     <Compile Include="Sound.cs" />
+    <Compile Include="UserAnalysisForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UserAnalysisForm.Designer.cs">
+      <DependentUpon>UserAnalysisForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UserInfoDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UserInfoDialog.Designer.cs">
+      <DependentUpon>UserInfoDialog.cs</DependentUpon>
+    </Compile>
     <Compile Include="Utilities.cs" />
     <Compile Include="Waterfall.cs" />
     <EmbeddedResource Include="Form1.resx">
@@ -163,6 +175,12 @@
     </Compile>
     <EmbeddedResource Include="QuickStartForm.resx">
       <DependentUpon>QuickStartForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UserAnalysisForm.resx">
+      <DependentUpon>UserAnalysisForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UserInfoDialog.resx">
+      <DependentUpon>UserInfoDialog.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>

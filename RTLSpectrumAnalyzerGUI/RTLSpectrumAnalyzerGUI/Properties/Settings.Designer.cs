@@ -22,5 +22,17 @@ namespace RTLSpectrumAnalyzerGUI.Properties {
                 return defaultInstance;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool DontShowInfoBox1 {
+            get {
+                return ((bool)(this["DontShowInfoBox1"]));
+            }
+            set {
+                this["DontShowInfoBox1"] = value;
+            }
+        }
     }
 }

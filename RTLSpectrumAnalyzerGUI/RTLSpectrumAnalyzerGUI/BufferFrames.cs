@@ -18,12 +18,12 @@ namespace RTLSpectrumAnalyzerGUI
 
         public const uint TRANSITION_LENGTH = 8 * 1000;
 
-#if (SDR_DEBUG)
+        #if (SDR_DEBUG)
             public const long BUFFER_TIME_LENGTH = 30 * 1000;        
             public const long TIME_DELAY_BEFORE_ZOOMING_BEFORE_ANALYZING_TRANSITIONS = 10 * 1000;
             public const long TIME_DELAY_BEFORE_ZOOMING = 3 * 1000;
-#else
-        public const long BUFFER_TIME_LENGTH = 60 * 1000;
+        #else
+            public const long BUFFER_TIME_LENGTH = 60 * 1000;
             public const long TIME_DELAY_BEFORE_ZOOMING_BEFORE_ANALYZING_TRANSITIONS = 60 * 1000;
             public const long TIME_DELAY_BEFORE_ZOOMING = 10 * 1000;
         #endif
@@ -604,15 +604,15 @@ namespace RTLSpectrumAnalyzerGUI
             {                
                 System.Windows.Forms.DataVisualization.Charting.DataPoint graphPoint;                
                 
-                chart.Series["Far Series"].Points.Clear();
+                chart.Series["Series"].Points.Clear();
 
                 double min = Double.NaN, max = Double.NaN;
                 
                 for (int i = 0; i < data.Length; i++)
                 {
-                    graphPoint = new System.Windows.Forms.DataVisualization.Charting.DataPoint(chart.Series["Far Series"].Points.Count, data[i]);
+                    graphPoint = new System.Windows.Forms.DataVisualization.Charting.DataPoint(chart.Series["Series"].Points.Count, data[i]);
 
-                    chart.Series["Far Series"].Points.Add(graphPoint);
+                    chart.Series["Series"].Points.Add(graphPoint);
 
                     if (Double.IsNaN(min) || data[i] < min)
                         min = data[i];

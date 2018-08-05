@@ -133,6 +133,10 @@ namespace RTLSpectrumAnalyzerGUI
         short MAX_INTERESTING_SIGNAL_LIST_BOX_COUNT = 100;
         short MAX_INTERESTING_SIGNALS_FOR_EVALUATION_COUNT = 8;
 
+        short STRONGEST_INTERESTING_AND_LEADERBOARD_SIGNALS_FOR_TRANSITIONS = 20;
+        
+        short GRAPH_WIDTH_WHEN_ZOOMED = 5000;
+
         string evaluatedFrequencyString = "";
 
         System.Windows.Forms.Timer eventTimer;
@@ -176,9 +180,11 @@ namespace RTLSpectrumAnalyzerGUI
 
         KeyboardInput keyboardInput;
 
+        quickStartForm quickStartForm;
+
         Form2 form2 = new Form2();
 
-        quickStartForm quickStartForm;
+        UserAnalysisForm userAnalysisForm;        
 
         BinData series1BinDataFullRange;
 
@@ -206,9 +212,11 @@ namespace RTLSpectrumAnalyzerGUI
         #if SDR_DEBUG
             public const long REQUIRED_FRAMES_BEFORE_ANALYZING_TRANSISTIONS = 4;
             public const long REQUIRED_ZOOMED_FRAMES_BEFORE_ZOOMING_OUT = 300;
+            public const long REQUIRED_FRAMES_BEFORE_USER_ANALYSIS = 1000;
         #else
             public const long REQUIRED_FRAMES_BEFORE_ANALYZING_TRANSISTIONS = 100;
             public const long REQUIRED_ZOOMED_FRAMES_BEFORE_ZOOMING_OUT = 1000;
+            public const long REQUIRED_FRAMES_BEFORE_USER_ANALYSIS = 10000;
         #endif
 
         TransitionGradientArray transitionGradientArray;
@@ -218,6 +226,11 @@ namespace RTLSpectrumAnalyzerGUI
         public int analyzingTransitionsBeforeSuccessCount = 0;
 
         public bool showGraphs = true;
+
+        public int currentLeaderboardSignalBeingAnalyzedIndex = -1;
+
+        private long userAnalysisCheckFarFrames = 0;
+        private long userAnalysisCheckNearFrames = 0;
 
         public long GetAverageNumberOfFramesForFrequencyRegion(BinData binData, BinDataMode binDataMode, long lowerFrequency, long upperFrequency, long dataLowerFrequency, double binSize)
         {
@@ -264,6 +277,7 @@ namespace RTLSpectrumAnalyzerGUI
                 automatedZooming = true;
 
                 button24.Enabled = false;
+                userAnalysisForm.button1.Enabled = button24.Enabled;
 
                 bufferFramesArray.Flush(series1BinData, series2BinData, series1BinData);                
 
@@ -847,6 +861,12 @@ namespace RTLSpectrumAnalyzerGUI
                     }
                 }
             }
+            else
+            {
+                chart.ChartAreas[0].AxisY.Minimum = 0;
+                
+                chart.ChartAreas[0].AxisY.Maximum = 0.01;
+            }
         }
 
         private void chart1_AxisViewChanged(object sender, System.Windows.Forms.DataVisualization.Charting.ViewEventArgs e)
@@ -1180,7 +1200,7 @@ namespace RTLSpectrumAnalyzerGUI
                 minAvgStrength = averageTotalFramesStrength;
 
             if (resetGraph)
-                newData = true;
+                newData = true;            
         }
 
         private void GraphData(BinData binData)
@@ -1463,6 +1483,39 @@ namespace RTLSpectrumAnalyzerGUI
                             listBox4.Items.Add(Utilities.GetFrequencyString(leaderBoardSignals[i].frequency) + ": " + Math.Round(leaderBoardSignals[i].rating, 2));
                         }
                     }
+
+                    long farFrames = GetAverageNumberOfFramesForFrequencyRegion(series1BinData, BinDataMode.Far, zoomedOutBufferObject.lowerFrequency, zoomedOutBufferObject.upperFrequency, zoomedOutBufferObject.lowerFrequency, binSize);
+                    long nearFrames = GetAverageNumberOfFramesForFrequencyRegion(series2BinData, BinDataMode.Near, zoomedOutBufferObject.lowerFrequency, zoomedOutBufferObject.upperFrequency, zoomedOutBufferObject.lowerFrequency, binSize);
+
+                    if (farFrames - userAnalysisCheckFarFrames > REQUIRED_FRAMES_BEFORE_USER_ANALYSIS && nearFrames - userAnalysisCheckNearFrames > REQUIRED_FRAMES_BEFORE_USER_ANALYSIS && listBox2.Items.Count>0)
+                    {
+                        string itemStr = (string)listBox2.Items[0];
+
+                        string[] itemStrArray = itemStr.Split(':');
+
+                        itemStrArray[0] = itemStrArray[0].Substring(0, itemStrArray[0].Length - 3);
+                        long reradiatedFrequency = (long)(double.Parse(itemStrArray[0]) * 1000000);
+
+                        int interestingSignalIndex = FrequencyInInterestingSignals(reradiatedFrequency, STRONGEST_INTERESTING_AND_LEADERBOARD_SIGNALS_FOR_TRANSITIONS);
+                        int leaderboardSignalIndex = FrequencyInLeaderboardSignals(reradiatedFrequency, STRONGEST_INTERESTING_AND_LEADERBOARD_SIGNALS_FOR_TRANSITIONS);
+
+                        if (interestingSignalIndex>-1 && leaderboardSignalIndex>-1)
+                        {
+                            userAnalysisCheckFarFrames = farFrames;
+                            userAnalysisCheckNearFrames = nearFrames;
+
+                            DialogResult dialogResult = MessageBox.Show("A frequency could be reradiated from you would you like to do a user analysis of this frequency?", "Possible reradiated frequency detected", MessageBoxButtons.YesNo);
+
+                            if (dialogResult == DialogResult.Yes)
+                            {
+                                userAnalysisForm.Show();
+                                userAnalysisForm.WindowState = FormWindowState.Maximized;
+
+                                currentLeaderboardSignalBeingAnalyzedIndex = leaderboardSignalIndex-1;
+                                AnalyzeLeaderboardFrequency();
+                            }
+                        }
+                    }
                 }
 
                 if (checkBox8.Checked && checkBox10.Checked)
@@ -1482,11 +1535,31 @@ namespace RTLSpectrumAnalyzerGUI
             {
                 textBox17.Text = Utilities.GetFrequencyString(transitionGradient.frequency);
 
+                userAnalysisForm.textBox17.Text = textBox17.Text;
+
                 textBox15.Text = transitionGradient.transitions.ToString();
 
-                this.mainForm.textBox18.Text = SignalDataUtilities.Series2ndVS1stHalfAvgStrength(transitionStrengthOverTime).ToString() + "%";
+                userAnalysisForm.textBox15.Text = textBox15.Text;
+
+                this.mainForm.textBox18.Text = SignalDataUtilities.Series2ndVS1stHalfAvgStrength(transitionStrengthOverTime).ToString() + "%";                
+
+                userAnalysisForm.textBox18.Text = textBox18.Text;
+                
+                System.Windows.Forms.DataVisualization.Charting.Chart chart;
+
+                /*////if (userAnalysisForm.Visible)
+                {
+                    chart = userAnalysisForm.chart8;                    
+                }
+                else
+                {
+                    chart = chart8;                    
+                }*/
+
+                ////currentBufferFramesObject.transitionBufferFrames.GraphData(chart, transitionStrengthOverTime);
 
                 currentBufferFramesObject.transitionBufferFrames.GraphData(chart8, transitionStrengthOverTime);
+                currentBufferFramesObject.transitionBufferFrames.GraphData(userAnalysisForm.chart8, transitionStrengthOverTime);
 
 
                 transitionStrengthOverTime = bufferFramesObjectContainingStrongestTransitionGradientFrequency.transitionBufferFrames.GetAveragedStrengthOverTimeForIndex(transitionGradient.index);
@@ -1494,8 +1567,10 @@ namespace RTLSpectrumAnalyzerGUI
                 if (transitionStrengthOverTime != null)
                 {
                     this.mainForm.textBox16.Text = SignalDataUtilities.Series2ndVS1stHalfAvgStrength(transitionStrengthOverTime).ToString() + "%";
+                    userAnalysisForm.textBox16.Text = textBox16.Text;
 
                     currentBufferFramesObject.transitionBufferFrames.GraphData(chart5, transitionStrengthOverTime);
+                    currentBufferFramesObject.transitionBufferFrames.GraphData(userAnalysisForm.chart5, transitionStrengthOverTime);
                 }
             }
         }
@@ -1506,20 +1581,20 @@ namespace RTLSpectrumAnalyzerGUI
             {
                 textBox.Text = gradientValue.ToString();
 
-                System.Windows.Forms.DataVisualization.Charting.DataPoint graphPoint = new System.Windows.Forms.DataVisualization.Charting.DataPoint(chart4.Series["Far Series"].Points.Count, gradientValue);
+                System.Windows.Forms.DataVisualization.Charting.DataPoint graphPoint = new System.Windows.Forms.DataVisualization.Charting.DataPoint(chart.Series["Series"].Points.Count, gradientValue);
 
-                if (chart.Series["Far Series"].Points.Count > MAXIMUM_TIME_BASED_GRAPH_POINTS)
+                if (chart.Series["Series"].Points.Count > MAXIMUM_TIME_BASED_GRAPH_POINTS)
                 {
-                    chart.Series["Far Series"].Points.RemoveAt(0);
+                    chart.Series["Series"].Points.RemoveAt(0);
 
-                    for (int j = 0; j < chart.Series["Far Series"].Points.Count; j++)
+                    for (int j = 0; j < chart.Series["Series"].Points.Count; j++)
                     {
-                        chart.Series["Far Series"].Points[j].XValue--;
+                        chart.Series["Series"].Points[j].XValue--;
                     }
                 }
 
                 if (checkBox8.Checked)
-                    chart.Series["Far Series"].Points.Add(graphPoint);
+                    chart.Series["Series"].Points.Add(graphPoint);
 
                 if (chart == chart5)
                 {
@@ -1534,15 +1609,15 @@ namespace RTLSpectrumAnalyzerGUI
                 double minY = 99999999;
                 double maxY = -99999999;
 
-                for (int j = 0; j < chart.Series["Far Series"].Points.Count; j++)
+                for (int j = 0; j < chart.Series["Series"].Points.Count; j++)
                 {
-                    if (chart.Series["Far Series"].Points[j].YValues[0] < minY)
-                        minY = chart.Series["Far Series"].Points[j].YValues[0];
+                    if (chart.Series["Series"].Points[j].YValues[0] < minY)
+                        minY = chart.Series["Series"].Points[j].YValues[0];
 
-                    if (chart.Series["Far Series"].Points[j].YValues[0] > maxY)
-                        maxY = chart.Series["Far Series"].Points[j].YValues[0];
+                    if (chart.Series["Series"].Points[j].YValues[0] > maxY)
+                        maxY = chart.Series["Series"].Points[j].YValues[0];
 
-                    totalAvg += chart.Series["Far Series"].Points[j].YValues[0];
+                    totalAvg += chart.Series["Series"].Points[j].YValues[0];
                 }
 
                 if (minY == maxY)
@@ -1551,16 +1626,16 @@ namespace RTLSpectrumAnalyzerGUI
                     minY--;
                 }
 
-                if (chart.Series["Far Series"].Points.Count > 0)
+                if (chart.Series["Series"].Points.Count > 0)
                 {
                     chart.ChartAreas[0].AxisY.Maximum = maxY;
                     chart.ChartAreas[0].AxisY.Minimum = minY;
                 }
 
-                avg = totalAvg / chart.Series["Far Series"].Points.Count;
+                avg = totalAvg / chart.Series["Series"].Points.Count;
 
 
-                if (checkBox6.Checked && chart == chart4)
+                if (checkBox6.Checked && chart == chart2)
                 {
                     double avgGraphStrengthChange = chart4.Series["Far Series"].Points[chart4.Series["Far Series"].Points.Count - 1].YValues[0] - chart4.Series["Far Series"].Points[chart4.Series["Far Series"].Points.Count - 2].YValues[0];
 
@@ -1585,9 +1660,9 @@ namespace RTLSpectrumAnalyzerGUI
             }
         }
         
-        private void AddPointToTimeBasedGraph(float value)
+        private void AddPointToTimeBasedGraph(System.Windows.Forms.DataVisualization.Charting.Chart chart, System.Windows.Forms.DataVisualization.Charting.Chart chart2,float value)
         {
-            System.Windows.Forms.DataVisualization.Charting.DataPoint graphPoint = new System.Windows.Forms.DataVisualization.Charting.DataPoint(chart3.Series["Far Series"].Points.Count, value);
+            System.Windows.Forms.DataVisualization.Charting.DataPoint graphPoint = new System.Windows.Forms.DataVisualization.Charting.DataPoint(chart.Series["Series"].Points.Count, value);
             
             double minY = 999999999999;
             double maxY = -999999999999;
@@ -1597,15 +1672,15 @@ namespace RTLSpectrumAnalyzerGUI
 
             int minMaxStart = 0;
 
-            for (int j = minMaxStart; j < chart3.Series["Far Series"].Points.Count; j++)
+            for (int j = minMaxStart; j < chart.Series["Series"].Points.Count; j++)
             {
-                if (chart3.Series["Far Series"].Points[j].YValues[0] < minY)
-                    minY = chart3.Series["Far Series"].Points[j].YValues[0];
+                if (chart.Series["Series"].Points[j].YValues[0] < minY)
+                    minY = chart.Series["Series"].Points[j].YValues[0];
 
-                if (chart3.Series["Far Series"].Points[j].YValues[0] > maxY)
-                    maxY = chart3.Series["Far Series"].Points[j].YValues[0];
+                if (chart.Series["Series"].Points[j].YValues[0] > maxY)
+                    maxY = chart.Series["Series"].Points[j].YValues[0];
 
-                totalAvg += chart3.Series["Far Series"].Points[j].YValues[0];
+                totalAvg += chart.Series["Series"].Points[j].YValues[0];
             }
 
             if (minY == maxY)
@@ -1614,27 +1689,27 @@ namespace RTLSpectrumAnalyzerGUI
                 minY--;
             }
 
-            if (chart3.Series["Far Series"].Points.Count > 0)
+            if (chart.Series["Series"].Points.Count > 0)
             {
-                chart3.ChartAreas[0].AxisY.Maximum = maxY;
-                chart3.ChartAreas[0].AxisY.Minimum = minY;
+                chart.ChartAreas[0].AxisY.Maximum = maxY;
+                chart.ChartAreas[0].AxisY.Minimum = minY;
             }
 
-            avg = totalAvg / chart3.Series["Far Series"].Points.Count;            
+            avg = totalAvg / chart.Series["Series"].Points.Count;            
 
 
-            if (chart3.Series["Far Series"].Points.Count > MAXIMUM_TIME_BASED_GRAPH_POINTS)
+            if (chart.Series["Series"].Points.Count > MAXIMUM_TIME_BASED_GRAPH_POINTS)
             {
-                chart3.Series["Far Series"].Points.RemoveAt(0);
+                chart.Series["Series"].Points.RemoveAt(0);
 
-                for (int j = 0; j < chart3.Series["Far Series"].Points.Count; j++)
+                for (int j = 0; j < chart.Series["Series"].Points.Count; j++)
                 {
-                    chart3.Series["Far Series"].Points[j].XValue--;
+                    chart.Series["Series"].Points[j].XValue--;
                 }
             }
 
             if (checkBox8.Checked)
-                chart3.Series["Far Series"].Points.Add(graphPoint);
+                chart.Series["Series"].Points.Add(graphPoint);
 
 
             System.Windows.Forms.DataVisualization.Charting.DataPoint prevPoint1;
@@ -1643,11 +1718,11 @@ namespace RTLSpectrumAnalyzerGUI
 
             double x1, y1, x2, y2, l1, l2, dotProduct, angle, trajAngle, totalTrajAngle = 0, avgTrajAngle;
 
-            for (int j = 1; j < chart3.Series["Far Series"].Points.Count - 1; j++)
+            for (int j = 1; j < chart.Series["Series"].Points.Count - 1; j++)
             {
-                prevPoint1 = chart3.Series["Far Series"].Points[j - 1];
-                prevPoint2 = chart3.Series["Far Series"].Points[j];
-                prevPoint3 = chart3.Series["Far Series"].Points[j + 1];
+                prevPoint1 = chart.Series["Series"].Points[j - 1];
+                prevPoint2 = chart.Series["Series"].Points[j];
+                prevPoint3 = chart.Series["Series"].Points[j + 1];
 
 
                 x1 = prevPoint1.XValue - prevPoint2.XValue;
@@ -1679,15 +1754,15 @@ namespace RTLSpectrumAnalyzerGUI
                     break;
             }
 
-            avgTrajAngle = totalTrajAngle / chart3.Series["Far Series"].Points.Count;            
+            avgTrajAngle = totalTrajAngle / chart.Series["Series"].Points.Count;            
 
             if (checkBox5.Checked)
             {
-                double avgGraphStrengthChange = chart3.Series["Far Series"].Points[chart3.Series["Far Series"].Points.Count - 1].YValues[0] - chart3.Series["Far Series"].Points[chart3.Series["Far Series"].Points.Count - 2].YValues[0];
+                double avgGraphStrengthChange = chart.Series["Series"].Points[chart.Series["Series"].Points.Count - 1].YValues[0] - chart.Series["Series"].Points[chart.Series["Series"].Points.Count - 2].YValues[0];
 
-                double strengthVSAvg = chart3.Series["Far Series"].Points[chart3.Series["Far Series"].Points.Count - 1].YValues[0] - avg;
+                double strengthVSAvg = chart.Series["Series"].Points[chart.Series["Series"].Points.Count - 1].YValues[0] - avg;
 
-                double graphExtent = chart3.ChartAreas[0].AxisY.Maximum - chart3.ChartAreas[0].AxisY.Minimum;
+                double graphExtent = chart.ChartAreas[0].AxisY.Maximum - chart.ChartAreas[0].AxisY.Minimum;
 
                 int soundFrequency = (int)(strengthVSAvg / (graphExtent * 10) * Sound.SOUND_FREQUENCY_MAXIMUM);
 
@@ -1701,25 +1776,25 @@ namespace RTLSpectrumAnalyzerGUI
             }
 
             
-            if (chart3.Series["Far Series"].Points.Count > 1)
+            if (chart.Series["Series"].Points.Count > 1)
             {
                 double gradient = 0;
                 double totalGradient = 0;
                 double avgGradient = 0;
 
-                for (int j = 1; j < chart3.Series["Far Series"].Points.Count; j++)
+                for (int j = 1; j < chart.Series["Series"].Points.Count; j++)
                 {
-                    totalGradient += (chart3.Series["Far Series"].Points[j].YValues[0] - chart3.Series["Far Series"].Points[j - 1].YValues[0]);
+                    totalGradient += (chart.Series["Series"].Points[j].YValues[0] - chart.Series["Series"].Points[j - 1].YValues[0]);
                 }
 
-                avgGradient = totalGradient / (chart3.Series["Far Series"].Points.Count - 1);
+                avgGradient = totalGradient / (chart.Series["Series"].Points.Count - 1);
 
-                if (chart3.Series["Far Series"].Points.Count > 1)
+                if (chart.Series["Series"].Points.Count > 1)
                 {
-                    gradient = chart3.Series["Far Series"].Points[chart3.Series["Far Series"].Points.Count - 1].YValues[0] - chart3.Series["Far Series"].Points[chart3.Series["Far Series"].Points.Count - 2].YValues[0];
+                    gradient = chart.Series["Series"].Points[chart.Series["Series"].Points.Count - 1].YValues[0] - chart.Series["Series"].Points[chart.Series["Series"].Points.Count - 2].YValues[0];
                 }
 
-                AddGradientPoint(chart4, textBox12, avgGradient);
+                AddGradientPoint(chart2, textBox12, avgGradient);
             }            
         }
 
@@ -1745,10 +1820,10 @@ namespace RTLSpectrumAnalyzerGUI
             else
             {
                 if (recordingSeries1)
-                    AddPointToTimeBasedGraph(float.Parse(textBox7.Text));
+                    AddPointToTimeBasedGraph(chart3, chart4, float.Parse(textBox7.Text));
 
                 if (recordingSeries2)
-                    AddPointToTimeBasedGraph(float.Parse(textBox8.Text));
+                    AddPointToTimeBasedGraph(chart3, chart4, float.Parse(textBox8.Text));
             }
         }
 
@@ -1773,11 +1848,35 @@ namespace RTLSpectrumAnalyzerGUI
             }
             else
             {
+                System.Windows.Forms.DataVisualization.Charting.Chart chart1, chart2;
+
+                /*////if (userAnalysisForm.Visible)
+                {
+                    chart1 = userAnalysisForm.chart3;
+                    chart2 = userAnalysisForm.chart4;
+                }
+                else
+                {
+                    chart1 = chart3;
+                    chart2 = chart4;
+                }*/
+
+
                 if (recordingSeries1)
-                    AddPointToTimeBasedGraph(float.Parse(textBox7.Text));
+                {
+                    ////AddPointToTimeBasedGraph(chart1, chart2, float.Parse(textBox7.Text));
+
+                    AddPointToTimeBasedGraph(chart3, chart4, float.Parse(textBox7.Text));
+                    AddPointToTimeBasedGraph(userAnalysisForm.chart3, userAnalysisForm.chart4, float.Parse(textBox7.Text));
+                }
 
                 if (recordingSeries2)
-                    AddPointToTimeBasedGraph(float.Parse(textBox8.Text));
+                {
+                    ////AddPointToTimeBasedGraph(chart1, chart2, float.Parse(textBox8.Text));
+
+                    AddPointToTimeBasedGraph(chart3, chart4, float.Parse(textBox8.Text));
+                    AddPointToTimeBasedGraph(userAnalysisForm.chart3, userAnalysisForm.chart4, float.Parse(textBox8.Text));
+                }
             }
         }
 
@@ -1798,7 +1897,7 @@ namespace RTLSpectrumAnalyzerGUI
 
                 magnitudeBufferCount = 0;
 
-                AddPointToTimeBasedGraph((float)avg);
+                AddPointToTimeBasedGraph(chart3, chart4, (float)avg);
             }
         }
 
@@ -1933,9 +2032,13 @@ namespace RTLSpectrumAnalyzerGUI
 
             button4.Enabled = true;
             button22.Enabled = button23.Enabled = button24.Enabled = button4.Enabled;
+            userAnalysisForm.button1.Enabled = button24.Enabled;
 
             if (automatedZooming)
+            {
                 button24.Enabled = false;
+                userAnalysisForm.button1.Enabled = button24.Enabled;
+            }
             
             button3.Enabled = true;
             button5.Enabled = true;
@@ -1943,11 +2046,22 @@ namespace RTLSpectrumAnalyzerGUI
             button17.Enabled = true;
             button18.Enabled = true;
 
+            userAnalysisForm.button17.Enabled = true;
+            userAnalysisForm.button18.Enabled = true;
+            userAnalysisForm.button2.Enabled = true;
+
             button3.Text = "Record Far Series Data";
             button17.Text = "Record Far";                                    
 
             button5.Text = "Record Near Series Data";
             button18.Text = "Record Near";
+
+
+            ////userAnalysisForm.button17.Text = "Record Far";
+            userAnalysisForm.button18.Text = "Record";
+
+
+
 
             this.Cursor = Cursors.Arrow;
         }
@@ -1984,7 +2098,40 @@ namespace RTLSpectrumAnalyzerGUI
             }
         }
 
-        private void RecordSeries1()
+        private int FrequencyInInterestingSignals(long frequency, long strongestRange)
+        {
+            for (int i = 0; i < interestingSignalsForAnalysis.Count && i < strongestRange; i++)
+            {
+                if (Utilities.Equals(interestingSignalsForAnalysis[i].frequency, frequency, 1000000))
+                    return i;
+            }
+
+            return -1;
+        }
+
+        private int FrequencyInLeaderboardSignals(long frequency, long strongestRange)
+        {
+            for (int i = 0; i < leaderBoardSignals.Count && i < strongestRange; i++)
+            {
+                if (Utilities.Equals(leaderBoardSignals[i].frequency, frequency, 1000000))
+                    return i;
+            }
+
+            return -1;
+        }
+
+        private bool FrequencyInInterestingAndLeaderBoardSignals(long frequency, long strongestRange)
+        {
+            if (FrequencyInInterestingSignals(frequency, strongestRange) > -1)
+                return true;
+
+            if (FrequencyInLeaderboardSignals(frequency, strongestRange) > -1)
+                return true;
+
+            return false;
+        }
+
+    private void RecordSeries1()
         {            
             if (button3.Text == "Record Far Series Data")
             {
@@ -1995,9 +2142,11 @@ namespace RTLSpectrumAnalyzerGUI
 
                 recordingSeries1Start = Environment.TickCount;
 
+                Command command = commandBuffer.GetCommand(commandBuffer.commandArray.Count - 2);
+
                 if (showGraphs)
-                {
-                    if (analyzingNearFarTransitions || !automatedZooming || !checkBox9.Checked)
+                {                                            
+                    if (analyzingNearFarTransitions || !automatedZooming || !checkBox9.Checked || (command != null && command.name == "UserSelectedFrequencyForAnalysis"))
                         checkBox8.Checked = true;
                     else
                         checkBox8.Checked = false;
@@ -2050,7 +2199,7 @@ namespace RTLSpectrumAnalyzerGUI
                         int totalMagnitude = 0;
                         double avgMagnitude = 0;
 
-                        Command command = commandBuffer.GetCommand(commandBuffer.commandArray.Count - 2);
+                        ////Command command = commandBuffer.GetCommand(commandBuffer.commandArray.Count - 2);
 
                         if (analyzingNearFarTransitions && (command == null || command.name != "UserSelectedFrequencyForAnalysis"))
                         {
@@ -2233,15 +2382,22 @@ namespace RTLSpectrumAnalyzerGUI
 
                 button4.Enabled = false;
                 button22.Enabled = button23.Enabled = button24.Enabled = button4.Enabled;
+                userAnalysisForm.button1.Enabled = button24.Enabled;
 
                 if (automatedZooming)
+                {
                     button24.Enabled = false;
+                    userAnalysisForm.button1.Enabled = button24.Enabled;
+                }
 
                 button5.Enabled = false;
                 button18.Enabled = false;
+                userAnalysisForm.button18.Enabled = false;
+                userAnalysisForm.button2.Enabled = false;
 
                 button3.Text = "Stop Recording";
-                button17.Text = "Stop";                
+                button17.Text = "Stop";
+                ////userAnalysisForm.button17.Text = "Stop";
             }
             else
             {
@@ -2255,7 +2411,7 @@ namespace RTLSpectrumAnalyzerGUI
             RecordSeries1();
         }
 
-        private void RecordSeries2()
+        public void RecordSeries2()
         {            
             if (button5.Text == "Record Near Series Data")
             {                
@@ -2378,7 +2534,10 @@ namespace RTLSpectrumAnalyzerGUI
 
                                             for (int i = 0; i < transitionGradientArray.array.Count; i++)
                                             {
-                                                listBox2.Items.Add(Utilities.GetFrequencyString(transitionGradientArray.array[i].frequency) + ": " + (transitionGradientArray.array[i].strength / transitionGradientArray.array[i].transitions) + "%: " + transitionGradientArray.array[i].transitions);
+                                                if (FrequencyInInterestingAndLeaderBoardSignals(transitionGradientArray.array[i].frequency, STRONGEST_INTERESTING_AND_LEADERBOARD_SIGNALS_FOR_TRANSITIONS))
+                                                {
+                                                    listBox2.Items.Add(Utilities.GetFrequencyString(transitionGradientArray.array[i].frequency) + ": " + (transitionGradientArray.array[i].strength / transitionGradientArray.array[i].transitions) + "%: " + transitionGradientArray.array[i].transitions);
+                                                }
                                             }
 
 
@@ -2425,7 +2584,9 @@ namespace RTLSpectrumAnalyzerGUI
                         else
                             currentBufferFramesObject.bufferFrames.Change(BinDataMode.Indeterminate, BinDataMode.Near);
 
-                        if (checkBox9.Checked && (Notifications.currentNotificationTimeIndex >= Notifications.notificationTime.Length - 1 || Environment.TickCount - GUIInput.lastInputTime >= Notifications.notificationTime[Notifications.currentNotificationTimeIndex]))
+                        Command command = commandBuffer.GetCommand(commandBuffer.commandCurrentBufferIndex - 1);
+                        
+                        if (checkBox9.Checked && (Notifications.currentNotificationTimeIndex >= Notifications.notificationTime.Length - 1 || Environment.TickCount - GUIInput.lastInputTime >= Notifications.notificationTime[Notifications.currentNotificationTimeIndex]) && (command == null || command.name != "UserSelectedFrequencyForAnalysis"))
                         {
                             double seconds = Math.Ceiling((double)(Notifications.notificationTime[Notifications.notificationTime.Length - 1] - (Environment.TickCount - GUIInput.lastInputTime)) / 1000);
                             notifyIcon1.BalloonTipTitle = "Recording Far in " + seconds + " seconds";
@@ -2506,7 +2667,7 @@ namespace RTLSpectrumAnalyzerGUI
 
                             ////CheckForNewSignalsAndRefreshData();
 
-                            Command command = commandBuffer.GetCommand(commandBuffer.commandArray.Count - 2);
+                            command = commandBuffer.GetCommand(commandBuffer.commandArray.Count - 2);
 
                             if (analyzingNearFarTransitions && automatedZooming && (command == null || command.name != "UserSelectedFrequencyForAnalysis"))
                             {
@@ -2665,15 +2826,19 @@ namespace RTLSpectrumAnalyzerGUI
 
                 button3.Enabled = false;
                 button17.Enabled = false;
+                userAnalysisForm.button17.Enabled = false;
                 button4.Enabled = false;
 
                 button22.Enabled = button23.Enabled = button24.Enabled = button4.Enabled;
+                userAnalysisForm.button1.Enabled = userAnalysisForm.button2.Enabled = button24.Enabled;
+                
 
                 if (automatedZooming)
                     button24.Enabled = false;
 
                 button5.Text = "Stop Recording";
                 button18.Text = "Stop";
+                userAnalysisForm.button18.Text = "Stop";
             }
             else
             {
@@ -2722,23 +2887,23 @@ namespace RTLSpectrumAnalyzerGUI
             frequencyRange = new Utilities.FrequencyRange(graph2LowerFrequency, graph2UpperFrequency);
             graph2FrequencyRanges.Push(frequencyRange);            
 
-            if (frequency - 1000 < dataLowerFrequency)
+            if (frequency - GRAPH_WIDTH_WHEN_ZOOMED/2 < dataLowerFrequency)
             {
                 graph1LowerFrequency = graph2LowerFrequency = dataLowerFrequency;
 
-                graph1UpperFrequency = graph2UpperFrequency = frequency + 20000;
+                graph1UpperFrequency = graph2UpperFrequency = frequency + GRAPH_WIDTH_WHEN_ZOOMED/2 + (frequency - dataLowerFrequency);
             }
             else
             {
                 if (frequency + 10000 > dataUpperFrequency)
                 {
-                    graph1LowerFrequency = graph2LowerFrequency = frequency - 20000;
+                    graph1LowerFrequency = graph2LowerFrequency = frequency - GRAPH_WIDTH_WHEN_ZOOMED/2 - (dataUpperFrequency - frequency);
                     graph1UpperFrequency = graph2UpperFrequency = dataUpperFrequency;
                 }
                 else
                 {
-                    graph1LowerFrequency = graph2LowerFrequency = frequency - 10000;
-                    graph1UpperFrequency = graph2UpperFrequency = frequency + 10000;
+                    graph1LowerFrequency = graph2LowerFrequency = frequency - GRAPH_WIDTH_WHEN_ZOOMED/2;
+                    graph1UpperFrequency = graph2UpperFrequency = frequency + GRAPH_WIDTH_WHEN_ZOOMED/2;
                 }
             }
 
@@ -2785,7 +2950,7 @@ namespace RTLSpectrumAnalyzerGUI
         }
 
 
-        private void ActivateSettings(bool clearSettings = true)
+        public void ActivateSettings(bool clearSettings = true)
         {
             try
             {
@@ -3414,6 +3579,8 @@ namespace RTLSpectrumAnalyzerGUI
 
             mainForm = this;
 
+            userAnalysisForm = new UserAnalysisForm(this);
+
             notifyIcon1.Icon = SystemIcons.Exclamation;
 
             notifyIcon1.BalloonTipTitle = "Recording Far";
@@ -3452,7 +3619,7 @@ namespace RTLSpectrumAnalyzerGUI
             chart2.ChartAreas[0].AxisX.IsMarginVisible = false;
             chart2.ChartAreas[0].AxisX.ScrollBar.Enabled = false;
 
-            chart3.Series["Far Series"].IsValueShownAsLabel = false;
+            chart3.Series["Series"].IsValueShownAsLabel = false;
 
             LoadConfig();
 
@@ -3566,9 +3733,13 @@ namespace RTLSpectrumAnalyzerGUI
                         {
                             button4.Enabled = true;
                             button22.Enabled = button23.Enabled = button24.Enabled = button4.Enabled;
+                            userAnalysisForm.button1.Enabled = button24.Enabled;
 
                             if (automatedZooming)
+                            {
                                 button24.Enabled = false;
+                                userAnalysisForm.button1.Enabled = button24.Enabled;
+                            }
                         }));
                     }
                     else
@@ -3578,9 +3749,13 @@ namespace RTLSpectrumAnalyzerGUI
                             button3.Enabled = false;
                             button4.Enabled = false;
                             button22.Enabled = button23.Enabled = button24.Enabled = button4.Enabled;
+                            userAnalysisForm.button1.Enabled = button24.Enabled;
 
                             if (automatedZooming)
+                            {
                                 button24.Enabled = false;
+                                userAnalysisForm.button1.Enabled = button24.Enabled;
+                            }
 
                             button5.Enabled = false;
                         }));
@@ -3814,9 +3989,7 @@ namespace RTLSpectrumAnalyzerGUI
         }
 
         private void button18_Click(object sender, EventArgs e)
-        {
-            currentBufferFramesObject.transitionBufferFrames.nearIndex = -1;
-
+        {            
             button5.PerformClick();
         }
 
@@ -3913,6 +4086,17 @@ namespace RTLSpectrumAnalyzerGUI
             ZoomOutOfFrequency();
 
             button24.Enabled = false;
+            userAnalysisForm.button1.Enabled = button24.Enabled;
+
+            BufferFramesObject zoomedOutBufferObject = bufferFramesArray.GetBufferFramesObject(0);
+
+            long farFrames = GetAverageNumberOfFramesForFrequencyRegion(series1BinData, BinDataMode.Far, zoomedOutBufferObject.lowerFrequency, zoomedOutBufferObject.upperFrequency, zoomedOutBufferObject.lowerFrequency, binSize);
+            long nearFrames = GetAverageNumberOfFramesForFrequencyRegion(series2BinData, BinDataMode.Near, zoomedOutBufferObject.lowerFrequency, zoomedOutBufferObject.upperFrequency, zoomedOutBufferObject.lowerFrequency, binSize);
+
+            userAnalysisCheckFarFrames = farFrames;
+            userAnalysisCheckNearFrames = nearFrames;
+
+            userAnalysisForm.Hide();
         }
 
         private void Form1_FormClosed(object sender, FormClosedEventArgs e)
@@ -3987,22 +4171,78 @@ namespace RTLSpectrumAnalyzerGUI
             ////showGraphs = false;
         }
 
+        private void AnalyzeFrequency(long userSelectedFrequencyForAnalysis)
+        {
+            if (series1BinData.binArray.Length > 0 && series2BinData.binArray.Length > 0 && !Double.IsNaN(series1BinData.binArray[0]) && !Double.IsNaN(series2BinData.binArray[0]))
+            {
+                ////if (!analyzingNearFarTransitions)
+                {
+                    commandBuffer.AddCommand("UserSelectedFrequencyForAnalysis");
+                    ////commandBuffer.AddCommand("UserSelectedFrequencyForZooming");
+
+                    ////userSelectedFrequencyForAnalysis = (long)(graph2UpperFrequency + graph2LowerFrequency) / 2;
+
+                    userAnalysisForm.textBox17.Text = Utilities.GetFrequencyString(userSelectedFrequencyForAnalysis);
+
+                    userAnalysisForm.textBox1.Text = (currentLeaderboardSignalBeingAnalyzedIndex + 1).ToString();
+
+                    ////analyzingNearFarTransitions = true;
+                    automatedZooming = false;
+                    button24.Enabled = true;
+                    userAnalysisForm.button1.Enabled = button24.Enabled;
+
+                    
+
+                    checkBox8.Checked = true;
+
+                    programState = ProgramState.ANALYZING_TRANSITIONS;
+
+                    ZoomToFrequency(userSelectedFrequencyForAnalysis);
+                }
+            }
+            else
+            {
+                if (series1BinData.binArray.Length == 0 || Double.IsNaN(series1BinData.binArray[0]))
+                {
+                    MessageBox.Show("Record some far frames first.");
+                }
+                else
+                if (series2BinData.binArray.Length == 0 || Double.IsNaN(series2BinData.binArray[0]))
+                {
+                    MessageBox.Show("Record some near frames first.");
+                }
+                else
+                    MessageBox.Show("Record some frames first.");
+
+            }            
+        }
+
+        public void AnalyzeLeaderboardFrequency()
+        {
+            currentLeaderboardSignalBeingAnalyzedIndex++;
+
+            if (currentLeaderboardSignalBeingAnalyzedIndex >= listBox4.Items.Count)
+                currentLeaderboardSignalBeingAnalyzedIndex = 0;
+
+            string itemStr = (string)listBox4.Items[currentLeaderboardSignalBeingAnalyzedIndex];
+
+            string[] itemStrArray = itemStr.Split(':');
+
+            itemStrArray[0] = itemStrArray[0].Substring(0, itemStrArray[0].Length - 3);
+
+            userSelectedFrequencyForAnalysis = (long)(double.Parse(itemStrArray[0]) * 1000000);
+
+            AnalyzeFrequency(userSelectedFrequencyForAnalysis);
+        }
+
         private void button25_Click(object sender, EventArgs e)
         {
-            if (!analyzingNearFarTransitions)
-            {
-                commandBuffer.AddCommand("UserSelectedFrequencyForAnalysis");
-                ////commandBuffer.AddCommand("UserSelectedFrequencyForZooming");
+            userAnalysisForm.Show();
+            userAnalysisForm.WindowState = FormWindowState.Maximized;
 
-                userSelectedFrequencyForAnalysis = (long)(graph2UpperFrequency + graph2LowerFrequency) / 2;
+            currentLeaderboardSignalBeingAnalyzedIndex = -1;
 
-                automatedZooming = false;
-                button24.Enabled = true;
-
-                programState = ProgramState.ANALYZING_TRANSITIONS;
-
-                ZoomToFrequency(userSelectedFrequencyForAnalysis);
-            }
+            AnalyzeLeaderboardFrequency();        
         }
 
         private void listBox4_SelectedIndexChanged(object sender, EventArgs e)
@@ -4022,6 +4262,15 @@ namespace RTLSpectrumAnalyzerGUI
                 
                 ZoomGraphsToFrequency(userSelectedFrequencyForZooming);
             }
+        }
+
+        private void button26_Click(object sender, EventArgs e)
+        {
+            userAnalysisForm.Show();
+            userAnalysisForm.WindowState = FormWindowState.Maximized;
+
+            currentLeaderboardSignalBeingAnalyzedIndex = -1;
+            AnalyzeLeaderboardFrequency();
         }
 
         private void listBox2_SelectedIndexChanged(object sender, EventArgs e)
