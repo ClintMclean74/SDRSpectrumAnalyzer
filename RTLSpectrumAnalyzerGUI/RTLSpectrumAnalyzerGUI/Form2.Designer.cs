@@ -38,6 +38,7 @@
             this.ClientSize = new System.Drawing.Size(1914, 1045);
             this.Name = "Form2";
             this.Text = "Increase indicator - Red increasing, Blue decreasing";
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Form2_FormClosed);
             this.ResumeLayout(false);
 
         }

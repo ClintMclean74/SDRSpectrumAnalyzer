@@ -119,7 +119,7 @@ namespace RTLSpectrumAnalyzerGUI
 
             return distance;
         }
-
+        
         private IntPtr MouseHookDelegate(Int32 Code, IntPtr wParam, IntPtr lParam)
         {
             GUIInput.lastInputTime = Environment.TickCount;
@@ -136,25 +136,15 @@ namespace RTLSpectrumAnalyzerGUI
             if (prevCoord.X==0 && prevCoord.Y==0)
                 prevCoord = currentCoord;
 
-            if (mainForm.UsingProximitryDetection())
-            {
-                double distance = this.GetMovementOverTime(1000);
+            /*////if (!mainForm.showingCheckForReradiatedFrequencyDialog)
+                mainForm.CheckForReradiatedFrequency();
+                */
 
-                if (distance > 100)
-                    if (mainForm.recordingSeries1 && GUIInput.lastInputTime - mainForm.recordingSeries1Start > GUIInput.AFTER_RECORD_FAR_INPUT_BUFFER)
-                    {
-                        mainForm.currentBufferFramesObject.transitionBufferFrames.nearIndex = mainForm.currentBufferFramesObject.bufferFrames.currentBufferIndex - 1;
+            double distance = this.GetMovementOverTime(1000);
 
-                        if (mainForm.currentBufferFramesObject.transitionBufferFrames.nearIndex < 0)
-                            mainForm.currentBufferFramesObject.transitionBufferFrames.nearIndex = mainForm.currentBufferFramesObject.transitionBufferFrames.bufferFramesArray.Count - 1;
-
-                        mainForm.StopRecording();
-
-                        mainForm.commandQueue.AddCommand("RecordSeries2");
-
-                        ////mainForm.recordingSeries2 = true;
-                        ////mainForm.recordingSeries1 = false;
-                    }             
+            if (distance > 100)
+            {            
+                mainForm.CheckForStartRecordingNearSeries();
             }
 
             prevCoord.X = currentCoord.X;
@@ -213,19 +203,13 @@ namespace RTLSpectrumAnalyzerGUI
 
             Notifications.currentNotificationTimeIndex = 0;
 
+            /*////if (!mainForm.showingCheckForReradiatedFrequencyDialog)
+                mainForm.CheckForReradiatedFrequency();
+                */
+
             if (mainForm.UsingProximitryDetection())
             {
-                if (mainForm.recordingSeries1 && GUIInput.lastInputTime - mainForm.recordingSeries1Start > GUIInput.AFTER_RECORD_FAR_INPUT_BUFFER)
-                {
-                    mainForm.currentBufferFramesObject.transitionBufferFrames.nearIndex = mainForm.currentBufferFramesObject.bufferFrames.currentBufferIndex - 1;
-
-                    if (mainForm.currentBufferFramesObject.transitionBufferFrames.nearIndex < 0)
-                        mainForm.currentBufferFramesObject.transitionBufferFrames.nearIndex = mainForm.currentBufferFramesObject.transitionBufferFrames.bufferFramesArray.Count - 1;
-
-                    mainForm.StopRecording();
-
-                    mainForm.commandQueue.AddCommand("RecordSeries2");
-                }                
+                mainForm.CheckForStartRecordingNearSeries();
             }
 
 

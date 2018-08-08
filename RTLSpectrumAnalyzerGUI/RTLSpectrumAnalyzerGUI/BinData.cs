@@ -19,6 +19,14 @@ namespace RTLSpectrumAnalyzerGUI
 
         public uint bufferFrames = 0;
 
+        public float[] storedTotalBinArray = null;
+        public float[] storedTotalBinArrayNumberOfFrames = null;
+
+        public float[] storedAvgBinArray = null;
+        public float[] storedBinArray = null;
+
+        public uint storedBufferFrames = 0;                
+
         public uint size = 0;
 
         public BinDataMode mode = BinDataMode.Indeterminate;
@@ -137,8 +145,33 @@ namespace RTLSpectrumAnalyzerGUI
             return Math.Ceiling(totalNumberOfFrames / (upperFrequencyIndex - lowerFrequencyIndex));
         }
 
-        public void Clear()
+        public void Restore()
         {
+            if (storedTotalBinArray!=null)
+            {
+                totalBinArray = storedTotalBinArray;
+                totalBinArrayNumberOfFrames = storedTotalBinArrayNumberOfFrames;
+
+                avgBinArray = storedAvgBinArray;
+                binArray = storedBinArray;
+
+                bufferFrames = storedBufferFrames;
+            }
+        }
+
+        public void Store()
+        {
+            storedTotalBinArray = (float[])totalBinArray.Clone();
+            storedTotalBinArrayNumberOfFrames = (float[])totalBinArrayNumberOfFrames.Clone();
+
+            storedAvgBinArray = (float[])avgBinArray.Clone();
+            storedBinArray = (float[])binArray.Clone();
+
+            storedBufferFrames = bufferFrames;
+        }
+
+        public void Clear()
+        {            
             for (int i = 0; i < this.size; i++)
             {
                 totalBinArray[i] = 0;

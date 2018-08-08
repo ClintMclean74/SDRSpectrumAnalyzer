@@ -771,56 +771,60 @@ namespace RTLSpectrumAnalyzerGUI
 
         public void Flush(BinData farSeries, BinData nearSeries, BinData indeterminateSeries)
         {
-            BinData targetBinData;
-
-            if (farSeries.totalBinArray.Length == 0)
+            if (farSeries != null || nearSeries != null || indeterminateSeries != null)
             {
-                farSeries.totalBinArray = new float[nearSeries.totalBinArray.Length];
-                farSeries.totalBinArrayNumberOfFrames = new float[nearSeries.totalBinArrayNumberOfFrames.Length];
-            }
+                BinData targetBinData;
 
-            minFrameIndex = bufferFramesArray.Count;
-
-            BufferFramesObject zoomedOutBufferObject = mainForm.bufferFramesArray.GetBufferFramesObject(0);
-            
-            long lowerIndex = (long)((parent.lowerFrequency - zoomedOutBufferObject.lowerFrequency) / zoomedOutBufferObject.binSize);
-            long upperIndex = (long)((parent.upperFrequency - zoomedOutBufferObject.lowerFrequency) / zoomedOutBufferObject.binSize);
-
-            for (int i = 0; i < bufferFramesArray.Count; i++)
-            {
-                bufferFramesArray[i].stackedFrames = 0;
-
-                if (bufferFramesArray[i].mode == BinDataMode.Far)
-                    targetBinData = farSeries;
-                else
-                    if (bufferFramesArray[i].mode == BinDataMode.Near)
-                        targetBinData = nearSeries;
-                else
-                    if (bufferFramesArray[i].mode == BinDataMode.Indeterminate)
-                        targetBinData = indeterminateSeries;
-                else
-                    targetBinData = null;
-
-                if (targetBinData != null)
+                if (farSeries.totalBinArray.Length == 0)
                 {
-                    int k = 0;                    
+                    farSeries.totalBinArray = new float[nearSeries.totalBinArray.Length];
+                    farSeries.totalBinArrayNumberOfFrames = new float[nearSeries.totalBinArrayNumberOfFrames.Length];
+                }
 
-                    for (long j = lowerIndex; j < upperIndex; j++)
+                minFrameIndex = bufferFramesArray.Count;
+
+                BufferFramesObject zoomedOutBufferObject = mainForm.bufferFramesArray.GetBufferFramesObject(0);
+
+                long lowerIndex = (long)((parent.lowerFrequency - zoomedOutBufferObject.lowerFrequency) / zoomedOutBufferObject.binSize);
+                long upperIndex = (long)((parent.upperFrequency - zoomedOutBufferObject.lowerFrequency) / zoomedOutBufferObject.binSize);
+
+                for (int i = 0; i < bufferFramesArray.Count; i++)
+                {
+                    bufferFramesArray[i].stackedFrames = 0;
+
+                    if (bufferFramesArray[i].mode == BinDataMode.Far)
+                        targetBinData = farSeries;
+                    else
+                        if (bufferFramesArray[i].mode == BinDataMode.Near)
+                        targetBinData = nearSeries;
+                    else
+                        if (bufferFramesArray[i].mode == BinDataMode.Indeterminate)
+                        targetBinData = indeterminateSeries;
+                    else
+                        targetBinData = null;
+
+                    if (targetBinData != null)
                     {
-                        targetBinData.totalBinArray[j] += bufferFramesArray[i].bufferArray[k];
-                        targetBinData.totalBinArrayNumberOfFrames[j]++;
+                        int k = 0;
 
-                        k++;
+                        for (long j = lowerIndex; j < upperIndex; j++)
+                        {
+                            targetBinData.totalBinArray[j] += bufferFramesArray[i].bufferArray[k];
+                            targetBinData.totalBinArrayNumberOfFrames[j]++;
+
+                            k++;
+                        }
+
+                        targetBinData.bufferFrames--;
                     }
-                    
-                    targetBinData.bufferFrames--;
                 }
             }
 
             bufferFramesArray.Clear();
 
             currentBufferIndex = -1;
-            startBufferIndex = 0;
+            ////currentBufferIndex = 0;
+            startBufferIndex = 1;
 
             transitions = 0;
 

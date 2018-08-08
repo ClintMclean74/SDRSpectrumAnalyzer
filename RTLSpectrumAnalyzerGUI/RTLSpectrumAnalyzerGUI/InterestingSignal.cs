@@ -4,7 +4,7 @@ using System.IO;
 
 namespace RTLSpectrumAnalyzerGUI
 {
-    class InterestingSignal
+    public class InterestingSignal
     {
         public int index = -1;
         public double strength = 0;

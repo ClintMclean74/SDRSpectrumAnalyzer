@@ -173,6 +173,9 @@
             this.label32 = new System.Windows.Forms.Label();
             this.label33 = new System.Windows.Forms.Label();
             this.button26 = new System.Windows.Forms.Button();
+            this.label34 = new System.Windows.Forms.Label();
+            this.label35 = new System.Windows.Forms.Label();
+            this.label36 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.chart1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.chart2)).BeginInit();
             this.groupBox1.SuspendLayout();
@@ -773,9 +776,9 @@
             this.radioButton4.Location = new System.Drawing.Point(11, 75);
             this.radioButton4.Margin = new System.Windows.Forms.Padding(4);
             this.radioButton4.Name = "radioButton4";
-            this.radioButton4.Size = new System.Drawing.Size(176, 38);
+            this.radioButton4.Size = new System.Drawing.Size(122, 21);
             this.radioButton4.TabIndex = 33;
-            this.radioButton4.Text = "Near Strength Increase\r\n(Near Series - 1)";
+            this.radioButton4.Text = "Ratio Near/Far";
             this.radioButton4.UseVisualStyleBackColor = true;
             this.radioButton4.CheckedChanged += new System.EventHandler(this.radioButton4_CheckedChanged);
             // 
@@ -975,7 +978,7 @@
             // 
             // button15
             // 
-            this.button15.Location = new System.Drawing.Point(1699, 466);
+            this.button15.Location = new System.Drawing.Point(1697, 418);
             this.button15.Margin = new System.Windows.Forms.Padding(4);
             this.button15.Name = "button15";
             this.button15.Size = new System.Drawing.Size(187, 50);
@@ -994,6 +997,7 @@
             this.textBox11.Size = new System.Drawing.Size(104, 22);
             this.textBox11.TabIndex = 48;
             this.textBox11.Text = "430000000";
+            this.textBox11.Visible = false;
             this.textBox11.TextChanged += new System.EventHandler(this.textBox11_TextChanged);
             // 
             // checkBox4
@@ -1006,6 +1010,7 @@
             this.checkBox4.TabIndex = 49;
             this.checkBox4.Text = "Frequency";
             this.checkBox4.UseVisualStyleBackColor = true;
+            this.checkBox4.Visible = false;
             this.checkBox4.CheckedChanged += new System.EventHandler(this.checkBox4_CheckedChanged);
             // 
             // button16
@@ -1643,7 +1648,6 @@
             this.button25.TabIndex = 93;
             this.button25.Text = "Analyze\r\nCenter\r\nFrequency";
             this.button25.UseVisualStyleBackColor = true;
-            this.button25.Visible = false;
             this.button25.Click += new System.EventHandler(this.button25_Click);
             // 
             // listBox4
@@ -1679,7 +1683,7 @@
             // 
             // button26
             // 
-            this.button26.Location = new System.Drawing.Point(1754, 967);
+            this.button26.Location = new System.Drawing.Point(1757, 967);
             this.button26.Margin = new System.Windows.Forms.Padding(4);
             this.button26.Name = "button26";
             this.button26.Size = new System.Drawing.Size(132, 69);
@@ -1688,11 +1692,49 @@
             this.button26.UseVisualStyleBackColor = true;
             this.button26.Click += new System.EventHandler(this.button26_Click);
             // 
+            // label34
+            // 
+            this.label34.AutoSize = true;
+            this.label34.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label34.Location = new System.Drawing.Point(516, 956);
+            this.label34.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label34.Name = "label34";
+            this.label34.Size = new System.Drawing.Size(11, 17);
+            this.label34.TabIndex = 120;
+            this.label34.Text = "|";
+            // 
+            // label35
+            // 
+            this.label35.AutoSize = true;
+            this.label35.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+            this.label35.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label35.Location = new System.Drawing.Point(336, 956);
+            this.label35.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label35.Name = "label35";
+            this.label35.Size = new System.Drawing.Size(31, 19);
+            this.label35.TabIndex = 119;
+            this.label35.Text = "Far";
+            // 
+            // label36
+            // 
+            this.label36.AutoSize = true;
+            this.label36.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+            this.label36.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label36.Location = new System.Drawing.Point(689, 956);
+            this.label36.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label36.Name = "label36";
+            this.label36.Size = new System.Drawing.Size(41, 19);
+            this.label36.TabIndex = 118;
+            this.label36.Text = "Near";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1911, 1045);
+            this.ClientSize = new System.Drawing.Size(1914, 1045);
+            this.Controls.Add(this.label34);
+            this.Controls.Add(this.label35);
+            this.Controls.Add(this.label36);
             this.Controls.Add(this.button26);
             this.Controls.Add(this.label33);
             this.Controls.Add(this.label32);
@@ -1796,6 +1838,7 @@
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Form1_FormClosed);
             this.Load += new System.EventHandler(this.Form1_Load);
+            this.Resize += new System.EventHandler(this.Form1_Resize);
             ((System.ComponentModel.ISupportInitialize)(this.chart1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.chart2)).EndInit();
             this.groupBox1.ResumeLayout(false);
@@ -1886,7 +1929,7 @@
         private System.Windows.Forms.CheckBox checkBox3;
         private System.Windows.Forms.Button button15;
         private System.Windows.Forms.TextBox textBox11;
-        private System.Windows.Forms.CheckBox checkBox4;
+        public System.Windows.Forms.CheckBox checkBox4;
         private System.Windows.Forms.Button button16;
         private System.Windows.Forms.Button button17;
         private System.Windows.Forms.Button button18;
@@ -1896,8 +1939,8 @@
         private System.Windows.Forms.Label label17;
         private System.Windows.Forms.TextBox textBox13;
         private System.Windows.Forms.DataVisualization.Charting.Chart chart5;
-        private System.Windows.Forms.CheckBox checkBox5;
-        private System.Windows.Forms.CheckBox checkBox6;
+        public System.Windows.Forms.CheckBox checkBox5;
+        public System.Windows.Forms.CheckBox checkBox6;
         private System.Windows.Forms.Label label18;
         private System.Windows.Forms.GroupBox groupBox5;
         private System.Windows.Forms.RadioButton radioButton8;
@@ -1942,6 +1985,9 @@
         private System.Windows.Forms.Label label32;
         private System.Windows.Forms.Label label33;
         private System.Windows.Forms.Button button26;
+        private System.Windows.Forms.Label label34;
+        private System.Windows.Forms.Label label35;
+        private System.Windows.Forms.Label label36;
     }
 }
 

@@ -112,6 +112,7 @@
     <Compile Include="BufferFrame.cs" />
     <Compile Include="BufferFrames.cs" />
     <Compile Include="BufferFramesArray.cs" />
+    <Compile Include="clsResize.cs" />
     <Compile Include="CommandBuffer.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>

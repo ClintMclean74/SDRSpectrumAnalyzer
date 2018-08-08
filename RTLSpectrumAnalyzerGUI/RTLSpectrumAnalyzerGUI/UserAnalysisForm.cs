@@ -32,6 +32,53 @@ namespace RTLSpectrumAnalyzerGUI
 
         }
 
+        private void StoreAndClearData()
+        {            
+            mainForm.bufferFramesArray.Flush(mainForm.series1BinData, mainForm.series2BinData, mainForm.series1BinData);
+
+            mainForm.series1BinData.Store();
+            mainForm.series2BinData.Store();
+
+            ClearData();
+        }
+
+        private void ClearData()
+        {
+            /*////
+            mainForm.currentBufferFramesObject.bufferFrames.Change(BinDataMode.Far, BinDataMode.NotUsed);
+            mainForm.currentBufferFramesObject.bufferFrames.Change(BinDataMode.Near, BinDataMode.NotUsed);
+            */            
+            
+            mainForm.ClearSeries1();
+            mainForm.ClearSeries2();
+        }
+
+        public void AnalyzingCenterFrequency()
+        {            
+            label1.Visible = false;
+
+            textBox1.Visible = false;
+
+            button3.Visible = false;
+
+            button2.Visible = false;
+
+            StoreAndClearData();
+        }
+
+        public void AnalyzingLeaderboardFrequency()
+        {
+            label1.Visible = true;
+
+            textBox1.Visible = true;
+
+            button3.Visible = true;
+
+            button2.Visible = true;
+
+            StoreAndClearData();
+        }
+
         private void button18_Click(object sender, EventArgs e)
         {
             this.mainForm.button5.PerformClick();
@@ -86,6 +133,64 @@ namespace RTLSpectrumAnalyzerGUI
             ////mainForm.currentLeaderboardSignalBeingAnalyzedIndex++;
 
             mainForm.AnalyzeLeaderboardFrequency();
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            if (!mainForm.recordingSeries1 && !mainForm.recordingSeries2)
+            {
+                mainForm.ClearSeries1();
+                mainForm.ClearSeries2();
+            }
+            else
+            {
+                mainForm.series1BinData.clearFrames = true;
+                mainForm.series2BinData.clearFrames = true;
+            }
+
+            /*////mainForm.ClearSeries1();
+            mainForm.ClearSeries2();
+            */
+            ////mainForm.bufferFramesArray.Flush(mainForm.series1BinData, mainForm.series2BinData, mainForm.series1BinData);
+
+            ////ClearData();
+        }
+
+        private void checkBox5_CheckedChanged(object sender, EventArgs e)
+        {
+            mainForm.checkBox5.Checked = checkBox5.Checked;
+
+            if (checkBox5.Checked)
+            {
+                mainForm.checkBox4.Checked = false;
+                checkBox6.Checked = false;
+            }
+        }
+
+        private void checkBox6_CheckedChanged(object sender, EventArgs e)
+        {
+            mainForm.checkBox6.Checked = checkBox6.Checked;
+
+            if (checkBox6.Checked)
+            {
+                mainForm.checkBox4.Checked = false;
+                checkBox5.Checked = false;
+            }
+        }
+
+        private void button15_Click(object sender, EventArgs e)
+        {
+            if (mainForm.form2 == null || mainForm.form2.IsDisposed)
+                mainForm.form2 = new Form2();
+
+            mainForm.form2.Show();
+
+            mainForm.form2.Focus();
+        }
+
+        private void button22_Click(object sender, EventArgs e)
+        {
+            mainForm.ShowSaveDataDialogAndSaveData();
         }
     }
 }

@@ -476,18 +476,24 @@ namespace RTLSpectrumAnalyzerGUI
 
 
             double array2NearestPeakStrength = SignalDataUtilities.GetNearestPeakStrength(array2, frequencyIndex);
-            double array1NearestPeakStrength = SignalDataUtilities.GetNearestPeakStrength(array1, frequencyIndex);           
+            double array1NearestPeakStrength = SignalDataUtilities.GetNearestPeakStrength(array1, frequencyIndex);
 
             ////double ratio = array2NearestPeakStrength / array1NearestPeakStrength * 100;
 
-            double ratio = array2[frequencyIndex] / array1NearestPeakStrength * 100;
+            if (array1NearestPeakStrength > 0)
+            {
+                double ratio = array2[frequencyIndex] / array1NearestPeakStrength * 100;
 
-            ////double ratio = array2[frequencyIndex] / array1[frequencyIndex] * 100;
+                ////double ratio = array2[frequencyIndex] / array1[frequencyIndex] * 100;
 
-            ////return ratio * Math.Abs(strength2) + ratio * (Math.Abs(strength2) /100);
+                ////return ratio * Math.Abs(strength2) + ratio * (Math.Abs(strength2) /100);
 
-            ////////return Math.Abs(dif) + ratio * Form1.series2Max * 0.01;
-            return ratio;
+                ////////return Math.Abs(dif) + ratio * Form1.series2Max * 0.01;
+                return ratio;
+            }
+            else
+                return 0;
+
         }
 
         static public double CalculateStrengthDifference2(float[] array1, float[] array2, long frequencyIndex)
