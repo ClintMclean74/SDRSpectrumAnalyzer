@@ -16,7 +16,13 @@ namespace RTLSpectrumAnalyzerGUI
 
         private void button4_Click(object sender, EventArgs e)
         {
-            mainForm.checkBox8.Checked = mainForm.showGraphs = checkBox1.Checked;
+            if (checkBox1.Checked)
+                mainForm.checkBox8.Checked = mainForm.checkBox13.Checked = mainForm.showGraphs = checkBox1.Checked;
+            else
+            {
+                mainForm.checkBox8.Checked = mainForm.showGraphs = checkBox1.Checked;
+                mainForm.checkBox13.Checked = true;
+            }
 
             if (checkBox10.Checked)
                 mainForm.LoadData("session.rtl");                
@@ -42,6 +48,11 @@ namespace RTLSpectrumAnalyzerGUI
             }
             else
                 textBox1.Enabled = textBox2.Enabled = textBox3.Enabled = true;
+        }
+
+        private void checkBox1_CheckedChanged(object sender, EventArgs e)
+        {
+
         }
     }
 }

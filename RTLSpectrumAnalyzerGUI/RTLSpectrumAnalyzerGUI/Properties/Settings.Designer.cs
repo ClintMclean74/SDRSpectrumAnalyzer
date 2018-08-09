@@ -34,5 +34,16 @@ namespace RTLSpectrumAnalyzerGUI.Properties {
                 this["DontShowInfoBox1"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        public int[] DontShowInfoBoxes {
+            get {
+                return ((int[])(this["DontShowInfoBoxes"]));
+            }
+            set {
+                this["DontShowInfoBoxes"] = value;
+            }
+        }
     }
 }

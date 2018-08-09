@@ -13,15 +13,24 @@ namespace RTLSpectrumAnalyzerGUI
     {
         private Form1 mainForm;
 
+        clsResize _form_resize;
+
         public UserAnalysisForm(Form1 mainForm)
         {
             InitializeComponent();
+
+            _form_resize = new clsResize(this);
+
+            _form_resize.SetFormsInitialSize(new Size(this.Width, this.Height));
+            _form_resize.StoreControlsInitialSizes();
 
             this.mainForm = mainForm;
         }
 
         private void UserAnalysisForm_FormClosing(object sender, FormClosingEventArgs e)
         {
+            mainForm.ResumeAutomatedAnalysis();
+
             this.Hide();
 
             e.Cancel = true;
@@ -29,7 +38,7 @@ namespace RTLSpectrumAnalyzerGUI
 
         private void UserAnalysisForm_Load(object sender, EventArgs e)
         {
-
+            WindowState = FormWindowState.Maximized;
         }
 
         private void StoreAndClearData()
@@ -54,7 +63,9 @@ namespace RTLSpectrumAnalyzerGUI
         }
 
         public void AnalyzingCenterFrequency()
-        {            
+        {
+            mainForm.ShowUserAnalysisDialog();
+
             label1.Visible = false;
 
             textBox1.Visible = false;
@@ -68,6 +79,8 @@ namespace RTLSpectrumAnalyzerGUI
 
         public void AnalyzingLeaderboardFrequency()
         {
+            mainForm.ShowUserAnalysisDialog();
+
             label1.Visible = true;
 
             textBox1.Visible = true;
@@ -84,10 +97,25 @@ namespace RTLSpectrumAnalyzerGUI
             this.mainForm.button5.PerformClick();
         }
 
+
+        private void ShowTransitionDialog()
+        {
+            if (Properties.Settings.Default.DontShowInfoBoxes[(int) UserInfoDialogs.TransitionDialog] != 1)
+            {
+                UserInfoDialog dialog = new UserInfoDialog((int)UserInfoDialogs.TransitionDialog);
+
+                dialog.SetText("Move away from the detector's antenna and computer for more than 4 seconds\r\nand return, then move the mouse or press a key to indicate that you're near.");
+
+                ////dialog.SetText("Move away from the detector's antenna and computer for more than 4 seconds\r\nand return, then move the mouse or press a key to indicate that you're near.Move away from the detector's antenna and computer for more than 4 seconds\r\nand return, then move the mouse or press a key to indicate that you're near.Move away from the detector's antenna and computer for more than 4 seconds\r\nand return, then move the mouse or press a key to indicate that you're near.Move away from the detector's antenna and computer for more than 4 seconds\r\nand return, then move the mouse or press a key to indicate that you're near.Move away from the detector's antenna and computer for more than 4 seconds\r\nand return, then move the mouse or press a key to indicate that you're near.Move away from the detector's antenna and computer for more than 4 seconds\r\nand return, then move the mouse or press a key to indicate that you're near.Move away from the detector's antenna and computer for more than 4 seconds\r\nand return, then move the mouse or press a key to indicate that you're near.Move away from the detector's antenna and computer for more than 4 seconds\r\nand return, then move the mouse or press a key to indicate that you're near.Move away from the detector's antenna and computer for more than 4 seconds\r\nand return, then move the mouse or press a key to indicate that you're near.Move away from the detector's antenna and computer for more than 4 seconds\r\nand return, then move the mouse or press a key to indicate that you're near.Move away from the detector's antenna and computer for more than 4 seconds\r\nand return, then move the mouse or press a key to indicate that you're near.Move away from the detector's antenna and computer for more than 4 seconds\r\nand return, then move the mouse or press a key to indicate that you're near.");
+                
+                dialog.ShowDialog();
+            }
+        }
+
         private void button17_Click(object sender, EventArgs e)
         {
-            if (!Properties.Settings.Default.DontShowInfoBox1)
-                new UserInfoDialog().ShowDialog();
+            ////if (!Properties.Settings.Default.DontShowInfoBox1)
+            ShowTransitionDialog();            
 
             ////MessageBox.Show("Move away from the detector's antenna for more than 4 seconds\r\nand return to the computer moving the mouse or pressing a key to indicate that you're near.");
             
@@ -180,17 +208,18 @@ namespace RTLSpectrumAnalyzerGUI
 
         private void button15_Click(object sender, EventArgs e)
         {
-            if (mainForm.form2 == null || mainForm.form2.IsDisposed)
-                mainForm.form2 = new Form2();
-
-            mainForm.form2.Show();
-
-            mainForm.form2.Focus();
+            mainForm.ShowIncreasingStrengthColorIndicator();            
         }
 
         private void button22_Click(object sender, EventArgs e)
         {
             mainForm.ShowSaveDataDialogAndSaveData();
+        }
+
+        private void UserAnalysisForm_Resize(object sender, EventArgs e)
+        {
+            if (_form_resize != null)
+                _form_resize._resize();
         }
     }
 }
