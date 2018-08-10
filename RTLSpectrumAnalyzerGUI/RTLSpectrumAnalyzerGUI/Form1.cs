@@ -1292,10 +1292,22 @@ namespace RTLSpectrumAnalyzerGUI
                     ratioBinArray[i] = 100;
                 }
 
+
+                long lowerIndex;
+                long upperIndex;
+
+                BufferFramesObject zoomedOutBufferObject = bufferFramesArray.GetBufferFramesObject(0);
+
+
+                lowerIndex = (long)((graph2LowerFrequency - zoomedOutBufferObject.lowerFrequency) / zoomedOutBufferObject.binSize);
+                upperIndex = (long)((graph2UpperFrequency - zoomedOutBufferObject.lowerFrequency) / zoomedOutBufferObject.binSize);
+
+
+
                 TransitionGradient transitionGradient;
-                for (int i = 0; i < series1BinData.totalBinArray.Length; i++)
+                for (long i = lowerIndex; i < upperIndex; i++)
                 {
-                    frequency = (uint)(dataLowerFrequency + (i * binSize));
+                    frequency = (uint)(zoomedOutBufferObject.lowerFrequency + (i * binSize));
 
                     transitionGradient = transitionGradientArray.GetTransitionGradientForFrequency(frequency, binSize / 10);
 
@@ -2594,8 +2606,9 @@ namespace RTLSpectrumAnalyzerGUI
 
                     while (userNear && recordingSeries2)
                     {
-                        if (!showingCheckForReradiatedFrequencyDialog && !analyzingUserSelectedFrequency)
+                        /*/////////if (!showingCheckForReradiatedFrequencyDialog && !analyzingUserSelectedFrequency)
                             CheckForReradiatedFrequency();
+                            */
 
                         currentMode = BinDataMode.Near;
 
@@ -2828,6 +2841,7 @@ namespace RTLSpectrumAnalyzerGUI
 
                                     GraphData(series2BinData);
                                     GraphDifferenceOrNearFarTransitionRatios(series1BinData, series2BinData);
+
 
                                     GraphAverageStrength(null);
 

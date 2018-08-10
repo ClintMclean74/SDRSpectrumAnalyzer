@@ -91,37 +91,40 @@ namespace RTLSpectrumAnalyzerGUI
         {
             try
             {
-                // Get width and height of bitmap
-                Width = source.Width;
-                Height = source.Height;
-
-                // get total locked pixels count
-                int PixelCount = Width * Height;
-
-                // Create rectangle to lock
-                Rectangle rect = new Rectangle(0, 0, Width, Height);
-
-                Bitmap bitmap = (Bitmap)(source.Image);
-
-                // get source bitmap pixel format size
-                Depth = System.Drawing.Bitmap.GetPixelFormatSize(bitmap.PixelFormat);
-
-                // Check if bpp (Bits Per Pixel) is 8, 24, or 32
-                if (Depth != 8 && Depth != 24 && Depth != 32)
+                if (source.Width > 0 && source.Height > 0)
                 {
-                    throw new ArgumentException("Only 8, 24 and 32 bpp images are supported.");
+                    // Get width and height of bitmap
+                    Width = source.Width;
+                    Height = source.Height;
+
+                    // get total locked pixels count
+                    int PixelCount = Width * Height;
+
+                    // Create rectangle to lock
+                    Rectangle rect = new Rectangle(0, 0, Width, Height);
+
+                    Bitmap bitmap = (Bitmap)(source.Image);
+
+                    // get source bitmap pixel format size
+                    Depth = System.Drawing.Bitmap.GetPixelFormatSize(bitmap.PixelFormat);
+
+                    // Check if bpp (Bits Per Pixel) is 8, 24, or 32
+                    if (Depth != 8 && Depth != 24 && Depth != 32)
+                    {
+                        throw new ArgumentException("Only 8, 24 and 32 bpp images are supported.");
+                    }
+
+                    // Lock bitmap and return bitmap data
+                    bitmapData = bitmap.LockBits(rect, ImageLockMode.ReadWrite, bitmap.PixelFormat);
+
+                    // create byte array to copy pixel values
+                    int step = Depth / 8;
+                    Pixels = new byte[PixelCount * step];
+                    Iptr = bitmapData.Scan0;
+
+                    // Copy data from pointer to array
+                    Marshal.Copy(Iptr, Pixels, 0, Pixels.Length);
                 }
-
-                // Lock bitmap and return bitmap data
-                bitmapData = bitmap.LockBits(rect, ImageLockMode.ReadWrite, bitmap.PixelFormat);
-
-                // create byte array to copy pixel values
-                int step = Depth / 8;
-                Pixels = new byte[PixelCount * step];
-                Iptr = bitmapData.Scan0;
-
-                // Copy data from pointer to array
-                Marshal.Copy(Iptr, Pixels, 0, Pixels.Length);
             }
             catch (Exception ex)
             {
