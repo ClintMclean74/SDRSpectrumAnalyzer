@@ -43,9 +43,11 @@ namespace RTLSpectrumAnalyzerGUI
 
             segmentLength = Math.Ceiling(segmentLength);
 
+            int i;
+
             int j = 0;
 
-            for (int i = 0; i < data.Length; i++)
+            for (i = 0; i < data.Length; i++)
             {
                 segmentStrengths[j] += data[i];
 
@@ -60,7 +62,7 @@ namespace RTLSpectrumAnalyzerGUI
 
             double[] percentageIncrements = new double[segmentCount - 1];
 
-            for (int i = 0; i < segmentStrengths.Length-1; i++)
+            for (i = 0; i < segmentStrengths.Length-1; i++)
             {
                 percentageIncrements[i] = Math.Round(segmentStrengths [i+1]/ segmentStrengths[i] * 100, 2);
             }
@@ -98,14 +100,14 @@ namespace RTLSpectrumAnalyzerGUI
 
             double avgStrengthIncrement = 0;
 
-            for (int i = 0; i < percentageIncrements.Length; i++)
+            for (i = 0; i < percentageIncrements.Length; i++)
             {
                 avgStrengthIncrement += percentageIncrements[i];
             }
 
 
             avgStrengthIncrement /= percentageIncrements.Length;
-            return Math.Round(avgStrengthIncrement, 2);
+            ////return Math.Round(avgStrengthIncrement, 2);
 
 
             /*////double avg1stQuarterStrength = 0;
@@ -132,9 +134,7 @@ namespace RTLSpectrumAnalyzerGUI
             return Math.Round(Avg2ndHalfStrength / Avg1stHalfStrength * 100, 2);
             */
 
-            /*////double Avg1stHalfStrength = 0;
-
-            int i;
+            double Avg1stHalfStrength = 0;            
 
             for (i = 0; i < data.Length/2; i++)
             {
@@ -153,8 +153,7 @@ namespace RTLSpectrumAnalyzerGUI
 
             Avg2ndHalfStrength = Avg2ndHalfStrength / (data.Length-(data.Length / 2));
 
-            return Math.Round(Avg2ndHalfStrength/Avg1stHalfStrength*100, 2);
-            */
+            return Math.Round(Avg2ndHalfStrength/Avg1stHalfStrength*100, 2);                        
         }
     }
 }
