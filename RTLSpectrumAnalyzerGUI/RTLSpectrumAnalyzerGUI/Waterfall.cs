@@ -33,6 +33,8 @@ namespace RTLSpectrumAnalyzerGUI
         public int Width { get; private set; }
         public int Height { get; private set; }
 
+        private bool bitsLocked = false;
+
 
         public Waterfall(PictureBox source)
         {
@@ -93,6 +95,7 @@ namespace RTLSpectrumAnalyzerGUI
             {
                 if (source.Width > 0 && source.Height > 0)
                 {
+                    bitsLocked = true;
                     // Get width and height of bitmap
                     Width = source.Width;
                     Height = source.Height;
@@ -137,18 +140,21 @@ namespace RTLSpectrumAnalyzerGUI
         /// </summary>
         public void UnlockBits()
         {
-            try
+            if (bitsLocked)
             {
-                // Copy data from byte array to pointer
-                Marshal.Copy(Pixels, 0, Iptr, Pixels.Length);
+                try
+                {
+                    // Copy data from byte array to pointer
+                    Marshal.Copy(Pixels, 0, Iptr, Pixels.Length);
 
-                Bitmap bitmap = (Bitmap)(source.Image);
-                // Unlock bitmap data
-                bitmap.UnlockBits(bitmapData);
-            }
-            catch (Exception ex)
-            {
-                throw ex;
+                    Bitmap bitmap = (Bitmap)(source.Image);
+                    // Unlock bitmap data
+                    bitmap.UnlockBits(bitmapData);
+                }
+                catch (Exception ex)
+                {
+                    throw ex;
+                }
             }
         }
 

@@ -59,5 +59,50 @@ namespace RTLSpectrumAnalyzerGUI.Properties {
                 resourceCulture = value;
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This is the user analysis form.
+        ///
+        ///Here you can determine changes in signal strength based on how far you are from the antenna.
+        ///
+        ///You can do a transition analysis on the signals, moving away from the antenna and your computer for 4 or more seconds and then returning, moving the mouse or pressing a key.
+        ///
+        ///A graph of the signal strength will be shown from 4 seconds before you get to your computer to 4 seconds after.
+        ///
+        ///You can also just record the signals, moving further and nearer to the antenna, noticing  [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string UserAnalysis {
+            get {
+                return ResourceManager.GetString("UserAnalysis", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Move away from the detector&apos;s antenna and computer for more than 4 seconds
+        ///and return, then move the mouse or press a key to indicate that you&apos;re near..
+        /// </summary>
+        internal static string UserTransitionAnalysis {
+            get {
+                return ResourceManager.GetString("UserTransitionAnalysis", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Welcome to the RTL SDR spectrum analyzer for detecting frequencies that you&apos;re emitting or reradiating.
+        ///
+        ///The QuickStart form will now be shown. On activating it the automated detection process will start.
+        ///
+        ///Signal data will be processed for when you&apos;re near to the antenna and further away. Stronger signals
+        ///when near indicate that you&apos;re emitting or reradiating a signal.
+        ///
+        ///The antenna should be placed near your computer, on your desk and extended.
+        ///
+        ///Preferably a yagi should be used. It can be placed a  [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string Welcome {
+            get {
+                return ResourceManager.GetString("Welcome", resourceCulture);
+            }
+        }
     }
 }

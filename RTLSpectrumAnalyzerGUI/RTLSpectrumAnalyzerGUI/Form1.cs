@@ -3734,30 +3734,40 @@ namespace RTLSpectrumAnalyzerGUI
 
         private void button11_Click(object sender, EventArgs e)
         {
-            if (!recordingSeries1)
-            {
-                radioButton3.Checked = true;
-                radioButton4.Enabled = false;
-            }
+            DialogResult dialogResult = MessageBox.Show("Are you sure? This will clear all your previously recorded data.", "Info", MessageBoxButtons.YesNo);
 
-            if (!recordingSeries1 && !recordingSeries2)
-                ClearSeries1();
-            else
-                series1BinData.clearFrames = true;
+            if (dialogResult == DialogResult.Yes)
+            {
+                if (!recordingSeries1)
+                {
+                    radioButton3.Checked = true;
+                    radioButton4.Enabled = false;
+                }
+
+                if (!recordingSeries1 && !recordingSeries2)
+                    ClearSeries1();
+                else
+                    series1BinData.clearFrames = true;
+            }
         }
 
         private void button12_Click(object sender, EventArgs e)
         {
-            if (!recordingSeries2)
-            {
-                radioButton3.Checked = true;
-                radioButton4.Enabled = false;
-            }
+            DialogResult dialogResult = MessageBox.Show("Are you sure? This will clear all your previously recorded data.", "Info", MessageBoxButtons.YesNo);
 
-            if (!recordingSeries1 && !recordingSeries2)
-                ClearSeries2();
-            else
-                series2BinData.clearFrames = true;
+            if (dialogResult == DialogResult.Yes)
+            {
+                if (!recordingSeries2)
+                {
+                    radioButton3.Checked = true;
+                    radioButton4.Enabled = false;
+                }
+
+                if (!recordingSeries1 && !recordingSeries2)
+                    ClearSeries2();
+                else
+                    series2BinData.clearFrames = true;
+            }
         }
 
         public Form1()
@@ -3907,15 +3917,13 @@ namespace RTLSpectrumAnalyzerGUI
             if (Properties.Settings.Default.DontShowInfoBoxes[(int)UserInfoDialogs.StartDialog] != 1)
             {
                 UserInfoDialog dialog = new UserInfoDialog((int)UserInfoDialogs.StartDialog);
-
-                ////dialog.SetText("Move away from the detector's antenna");
+                
+                string welcomeText = Utilities.GetResourceText("RTLSpectrumAnalyzerGUI.Resources.Welcome.txt");
 
                 dialog.SetTitle("RTL SDR spectrum analyzer");
-                dialog.SetText("Welcome to the RTL SDR spectrum analyzer for detecting frequencies that you're emitting or \r\nreradiating.\r\n\r\nThe QuickStart form will now be shown. On activating it the automated detection process will start.\r\n\r\nSignal data will be processed for when you're near to the antenna and further away. Stronger signals \r\nwhen near indicate that you're emitting or reradiating a signal.\r\n\r\nThe antenna should be placed near your computer, on your desk and extended.\r\n\r\nPreferably a yagi should be used.It can be placed a little further away, pointing at where you stand or\r\nsit at your computer.\r\n\r\nWhen you're not using your computer move away from it, at least several meters and if you're using a \r\nyagi, then also out of it's detection region.\r\n\r\nThere are thousands of signals to be evaluated and signals often change in strength themselves, so this \r\nis a long process to detect those signals that are being emitted or reradiated from yourself. \r\n\r\nThis program though, automates most of that process.\r\n\r\nSo you can run it while you go about your day.\r\n\r\nReradiated or emitted signals should often be in the various leaderboards and interesting signals lists \r\nand the program itself will let you know if it finds something interesting.\r\n\r\nReady? Let's get started.");
+                dialog.SetText(welcomeText);
 
                 dialog.EnableShowMessageAgain(false);
-
-                ////dialog.SetText("Move away from the detector's antenna and computer for more than 4 seconds\r\nand return, then move the mouse or press a key to indicate that you're near.Move away from the detector's antenna and computer for more than 4 seconds\r\nand return, then move the mouse or press a key to indicate that you're near.Move away from the detector's antenna and computer for more than 4 seconds\r\nand return, then move the mouse or press a key to indicate that you're near.Move away from the detector's antenna and computer for more than 4 seconds\r\nand return, then move the mouse or press a key to indicate that you're near.Move away from the detector's antenna and computer for more than 4 seconds\r\nand return, then move the mouse or press a key to indicate that you're near.Move away from the detector's antenna and computer for more than 4 seconds\r\nand return, then move the mouse or press a key to indicate that you're near.Move away from the detector's antenna and computer for more than 4 seconds\r\nand return, then move the mouse or press a key to indicate that you're near.Move away from the detector's antenna and computer for more than 4 seconds\r\nand return, then move the mouse or press a key to indicate that you're near.Move away from the detector's antenna and computer for more than 4 seconds\r\nand return, then move the mouse or press a key to indicate that you're near.Move away from the detector's antenna and computer for more than 4 seconds\r\nand return, then move the mouse or press a key to indicate that you're near.Move away from the detector's antenna and computer for more than 4 seconds\r\nand return, then move the mouse or press a key to indicate that you're near.Move away from the detector's antenna and computer for more than 4 seconds\r\nand return, then move the mouse or press a key to indicate that you're near.");
 
                 dialog.ShowDialog();
             }
@@ -3925,15 +3933,13 @@ namespace RTLSpectrumAnalyzerGUI
         {            
             if (Properties.Settings.Default.DontShowInfoBoxes[(int)UserInfoDialogs.UserAnalysisDialog] != 1)
             {
-                UserInfoDialog dialog = new UserInfoDialog((int)UserInfoDialogs.UserAnalysisDialog);
+                UserInfoDialog dialog = new UserInfoDialog((int)UserInfoDialogs.UserAnalysisDialog);                
 
-                ////dialog.SetText("Move away from the detector's antenna");
+                string userAnalysisText = Utilities.GetResourceText("RTLSpectrumAnalyzerGUI.Resources.UserAnalysis.txt");
 
                 dialog.SetTitle("User Analysis");
 
-                dialog.SetText("This is the user analysis form.\r\n\r\nHere you can determine changes in signal strength based on how far you are from the antenna.\r\n\r\nYou can do a transition analysis on the signals, moving away from the antenna and your computer for 4 \r\nor more seconds and then returning, moving the mouse or pressing a key.\r\n\r\nA graph of the signal strength will be shown from 4 seconds before you get to your computer to 4 \r\nseconds after.\r\n\r\nYou can also just record the signals, moving further and nearer to the antenna, noticing the change in \r\nsignal strength in the strength and gradient graphs.\r\n\r\nThe signal strength graph is the accrued averaged signal strength, so if you find that it's consistently \r\nincreasing or decreasing, then just clear the stored averages with the “Clear” button.\r\n\r\nThat often occurs with a signal that is often changing in strength.The previous average then needs to \r\nbecome the new average, so it takes a while, either increasing or decreasing to get there.\r\n\r\nClearing the data gets the averages to reset.\r\n\r\nIt's often useful to clear the data, wait 10 or so seconds and then move nearer or further from the \r\nantenna, noticing if the strength increases or decreases to get to the new signal strength.\r\n\r\nThe gradient of the signal strength graph, should essentially always increase when you get nearer the \r\nantenna for an emitted or reradiated signal, although that increase doesn't last long, just until the \r\ngradient is at the required level for the changing signal strength, then it just fluctuates around that level.\r\n\r\nThis is very useful, because a signal that is changing in strength itself will still have it's gradient \r\naffected by your proximitry to the antenna.\r\n\r\nSo a decreasing signal's strength would have it's gradient increase, because it's decreasing at a slower \r\nrate and an increasing signal's strength would also have an increasing gradient, because the signal is \r\nincreasing even more so than what it previously was.\r\n\r\nSo this is very useful to detect a reradiated or emitted signal, just determine whether it momentarily \r\nincreases when you get nearer the antenna.");
-               
-                ////dialog.SetText("Move away from the detector's antenna and computer for more than 4 seconds\r\nand return, then move the mouse or press a key to indicate that you're near.Move away from the detector's antenna and computer for more than 4 seconds\r\nand return, then move the mouse or press a key to indicate that you're near.Move away from the detector's antenna and computer for more than 4 seconds\r\nand return, then move the mouse or press a key to indicate that you're near.Move away from the detector's antenna and computer for more than 4 seconds\r\nand return, then move the mouse or press a key to indicate that you're near.Move away from the detector's antenna and computer for more than 4 seconds\r\nand return, then move the mouse or press a key to indicate that you're near.Move away from the detector's antenna and computer for more than 4 seconds\r\nand return, then move the mouse or press a key to indicate that you're near.Move away from the detector's antenna and computer for more than 4 seconds\r\nand return, then move the mouse or press a key to indicate that you're near.Move away from the detector's antenna and computer for more than 4 seconds\r\nand return, then move the mouse or press a key to indicate that you're near.Move away from the detector's antenna and computer for more than 4 seconds\r\nand return, then move the mouse or press a key to indicate that you're near.Move away from the detector's antenna and computer for more than 4 seconds\r\nand return, then move the mouse or press a key to indicate that you're near.Move away from the detector's antenna and computer for more than 4 seconds\r\nand return, then move the mouse or press a key to indicate that you're near.Move away from the detector's antenna and computer for more than 4 seconds\r\nand return, then move the mouse or press a key to indicate that you're near.");
+                dialog.SetText(userAnalysisText);
 
                 dialog.ShowDialog();
             }

@@ -1,0 +1,38 @@
+Here you can determine changes in signal strength based on how far you are from the antenna.
+
+You can do a transition analysis on the signals, moving away from the antenna and your computer for 4 or more seconds
+and then returning, moving the mouse or pressing a key.
+
+A graph of the signal strength will be shown from 4 seconds before you get to your computer to 4 seconds after.
+
+You can also just record the signals, moving further and nearer to the antenna, noticing the change in signal strength
+in the strength and gradient graphs.
+
+The signal strength graph is the accrued averaged signal strength, so if you find that it's consistently increasing
+or decreasing, then just clear the stored averages with the "Clear" button.
+
+That often occurs with a signal that is often changing in strength. The previous average then needs to become the new
+average, so it takes a while, either increasing or decreasing to get there.
+
+Clearing the data gets the averages to reset.
+
+Clearing the data from this form does not clear all the previous data that's been recorded, though. So you mostly just want to clear
+it from here because you don't want to lose all that previous data.
+
+It's often useful to clear this data, wait 10 or so seconds and then move nearer or further from the antenna,
+noticing if the strength increases or decreases to get to the new signal strength.
+
+The gradient of the signal strength graph, should essentially always increase when you get nearer the antenna for an
+emitted or reradiated signal, although that increase doesn't last long, just until the gradient is at the required
+level for the changing signal strength, then it just fluctuates around that level.
+
+This is very useful though, because a signal that is changing in strength itself, increasing or decreasing, will still have
+it's gradient affected by your proximitry to the antenna.
+
+So a decreasing signal's strength would have it's gradient increase, because it's decreasing at a slower rate and an increasing
+signal's strength would also have an increasing gradient, because the signal is increasing even more so than what it previously was.
+
+So an increasing gradient often indicates a reradiated or emitted signal, just determine whether it momentarily increases
+when you get nearer the antenna.
+
+An increasing transition analysis is also a strong indicator of a reradiated or emitted signal.

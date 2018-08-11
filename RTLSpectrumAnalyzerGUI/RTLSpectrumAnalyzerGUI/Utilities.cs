@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
+
 
 namespace RTLSpectrumAnalyzerGUI
 {
@@ -19,7 +22,7 @@ namespace RTLSpectrumAnalyzerGUI
 
         public static FrequencyRange GetFrequencyRangeFromFrequency(long frequency)
         {
-            double lowerFrequency, upperFrequency;            
+            double lowerFrequency, upperFrequency;
 
             lowerFrequency = Math.Floor((double)frequency / 1000000) * 1000000;
 
@@ -53,7 +56,7 @@ namespace RTLSpectrumAnalyzerGUI
 
         public static long GetFrequencyFromIndex(long index, long lowerFrequencyOfArray, double binSize)
         {
-            return (long) (Math.Round(lowerFrequencyOfArray + (index * binSize)));
+            return (long)(Math.Round(lowerFrequencyOfArray + (index * binSize)));
         }
 
         public static FrequencyRange GetIndicesForFrequencyRange(long specifiedLowerFrequency, long specifiedUpperFrequency, long dataLowerFrequency, double binFrequencySize)
@@ -93,6 +96,22 @@ namespace RTLSpectrumAnalyzerGUI
             }
 
             return closestIndex;
+        }
+
+        public static string GetResourceText(string textResourceName)
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+            var resourceName = textResourceName;
+
+            ////string[] resources = assembly.GetManifestResourceNames();
+
+            using (Stream stream = assembly.GetManifestResourceStream(resourceName))
+            using (StreamReader reader = new StreamReader(stream))
+            {
+                string result = reader.ReadToEnd();
+
+                return result;
+            }
         }
     }
 }

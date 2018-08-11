@@ -104,10 +104,10 @@ namespace RTLSpectrumAnalyzerGUI
             {
                 UserInfoDialog dialog = new UserInfoDialog((int)UserInfoDialogs.TransitionDialog);
 
-                dialog.SetText("Move away from the detector's antenna and computer for more than 4 seconds\r\nand return, then move the mouse or press a key to indicate that you're near.");
+                string userTransitionAnalysisText = Utilities.GetResourceText("RTLSpectrumAnalyzerGUI.Resources.UserTransitionAnalysis.txt");
 
-                ////dialog.SetText("Move away from the detector's antenna and computer for more than 4 seconds\r\nand return, then move the mouse or press a key to indicate that you're near.Move away from the detector's antenna and computer for more than 4 seconds\r\nand return, then move the mouse or press a key to indicate that you're near.Move away from the detector's antenna and computer for more than 4 seconds\r\nand return, then move the mouse or press a key to indicate that you're near.Move away from the detector's antenna and computer for more than 4 seconds\r\nand return, then move the mouse or press a key to indicate that you're near.Move away from the detector's antenna and computer for more than 4 seconds\r\nand return, then move the mouse or press a key to indicate that you're near.Move away from the detector's antenna and computer for more than 4 seconds\r\nand return, then move the mouse or press a key to indicate that you're near.Move away from the detector's antenna and computer for more than 4 seconds\r\nand return, then move the mouse or press a key to indicate that you're near.Move away from the detector's antenna and computer for more than 4 seconds\r\nand return, then move the mouse or press a key to indicate that you're near.Move away from the detector's antenna and computer for more than 4 seconds\r\nand return, then move the mouse or press a key to indicate that you're near.Move away from the detector's antenna and computer for more than 4 seconds\r\nand return, then move the mouse or press a key to indicate that you're near.Move away from the detector's antenna and computer for more than 4 seconds\r\nand return, then move the mouse or press a key to indicate that you're near.Move away from the detector's antenna and computer for more than 4 seconds\r\nand return, then move the mouse or press a key to indicate that you're near.");
-                
+                dialog.SetText(userTransitionAnalysisText);
+
                 dialog.ShowDialog();
             }
         }

@@ -1,0 +1,29 @@
+Welcome to the RTL SDR spectrum analyzer for detecting frequencies that you're emitting or reradiating.
+
+The QuickStart form will now be shown. On activating it the automated detection process will start.
+
+Signal data will be processed for when you're near to the antenna and further away. Stronger signals
+when near indicate that you're emitting or reradiating a signal.
+
+The antenna should be placed near your computer, on your desk and extended.
+
+Preferably a yagi should be used. It can be placed a little further away, pointing at where you stand or
+sit at your computer.
+
+When you're not using your computer move away from it, at least several meters and if you're using a
+yagi, then also out of it's detection region.
+
+There are thousands of signals to be evaluated and signals often change in strength themselves, so this
+is a long process to detect those signals that are being emitted or reradiated from yourself.
+
+However, this program automates most of that process.
+
+So go about your day and it will analyse the signals for you.
+
+A signal that is being reradiated or emitted from you should often be in the various leaderboards
+and interesting signals lists and the program itself will let you know if it finds something interesting.
+
+The idea is that through the process of analysing these signals, those that are being reradiated or emitted
+from you will inevitably show on the leaderboard lists. 
+
+Ready? Let's get started.

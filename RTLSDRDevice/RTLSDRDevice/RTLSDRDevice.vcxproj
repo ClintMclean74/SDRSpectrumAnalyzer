@@ -169,8 +169,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="convenience.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="RTLSDRDevice.h" />
     <ClInclude Include="stdafx.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="RTLSDRDevice.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
