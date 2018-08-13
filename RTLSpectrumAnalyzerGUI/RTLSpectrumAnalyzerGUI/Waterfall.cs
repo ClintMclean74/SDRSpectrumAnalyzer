@@ -130,7 +130,7 @@ namespace RTLSpectrumAnalyzerGUI
                 }
             }
             catch (Exception ex)
-            {
+            {                
                 throw ex;
             }
         }
@@ -150,6 +150,8 @@ namespace RTLSpectrumAnalyzerGUI
                     Bitmap bitmap = (Bitmap)(source.Image);
                     // Unlock bitmap data
                     bitmap.UnlockBits(bitmapData);
+
+                    bitsLocked = false;
                 }
                 catch (Exception ex)
                 {

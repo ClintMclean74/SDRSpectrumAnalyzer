@@ -132,6 +132,12 @@
     <Compile Include="GradientArray.cs" />
     <Compile Include="GUIInput.cs" />
     <Compile Include="InterestingSignal.cs" />
+    <Compile Include="LeaderboardGraph.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="LeaderboardGraph.Designer.cs">
+      <DependentUpon>LeaderboardGraph.cs</DependentUpon>
+    </Compile>
     <Compile Include="NativeMethods.cs" />
     <Compile Include="Notifications.cs" />
     <Compile Include="Program.cs" />
@@ -166,6 +172,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Form2.resx">
       <DependentUpon>Form2.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="LeaderboardGraph.resx">
+      <DependentUpon>LeaderboardGraph.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
