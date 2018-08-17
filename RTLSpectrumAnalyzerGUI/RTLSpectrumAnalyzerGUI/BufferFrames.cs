@@ -444,9 +444,9 @@ namespace RTLSpectrumAnalyzerGUI
                         transitionsStrengthArray = GetAveragedStrengthOverTimeForIndex(j);
                         ////transitionsStrengthArray = GetStrengthOverTimeForIndex(j);                        
 
-                        ////gradientStrength = SignalDataUtilities.Series2ndVS1stHalfAvgStrength(transitionsStrengthArray);
+                        gradientStrength = SignalDataUtilities.Series2ndVS1stHalfAvgStrength(transitionsStrengthArray);
 
-                        gradientStrength = SignalDataUtilities.Series2ndVS1stHalfAvgStrength(transitionsStrengthArray) * transitions;
+                        ////gradientStrength = SignalDataUtilities.Series2ndVS1stHalfAvgStrength(transitionsStrengthArray) * transitions;
 
                         if (Double.IsNaN(maxGradientStrength) || gradientStrength > maxGradientStrength)
                         {

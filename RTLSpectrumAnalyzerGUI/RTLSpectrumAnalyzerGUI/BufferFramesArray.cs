@@ -144,7 +144,7 @@ namespace RTLSpectrumAnalyzerGUI
 
         public bool[] options = new bool[10];
 
-        public int reradiatedRankingCategory = 1;
+        public int reradiatedRankingCategory = -1;
 
         public BufferFramesObject(Form1 mainForm, long lowerFrequency, long upperFrequency, double binSize)
         {
