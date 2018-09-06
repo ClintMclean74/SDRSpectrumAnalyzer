@@ -16,7 +16,9 @@ namespace RTLSpectrumAnalyzerGUI
 
         public const uint MIN_BUFFER_SIZE = 10;
 
-        public const uint TRANSITION_LENGTH = 8 * 1000;
+        public const uint TRANSITION_LENGTH = 16 * 1000;
+
+        public const long TRANSITIONS_ANALYSES_MODE_TIME_DELAY_BEFORE_ZOOMING = 3 * 1000;
 
         #if (SDR_DEBUG)
             public const long BUFFER_TIME_LENGTH = 30 * 1000;        
@@ -28,8 +30,8 @@ namespace RTLSpectrumAnalyzerGUI
             public const long TIME_DELAY_BEFORE_ZOOMING = 10 * 1000;
         #endif
 
-        public const long ZOOMED_IN_TRANSISTION_FRAMES_EXIT = 4;
-        public const long ZOOMED_IN_TRANSISTION_FRAMES_STAGE1 = 1;
+        public const long ZOOMED_IN_TRANSITION_FRAMES_EXIT = 4;
+        public const long ZOOMED_IN_TRANSITION_FRAMES_STAGE1 = 1;
 
         public const double MIN_NEAR_FAR_PERCENTAGE_FOR_RERADIATED_FREQUENCY = 105;
 
@@ -234,6 +236,78 @@ namespace RTLSpectrumAnalyzerGUI
             }
         }
 
+        public double[] GetStrengthOverTimeForRange(long startIndex, long endIndex)
+        {        
+            if (currentTransitionBufferFramesArray.Count > 0)
+            {
+                double totalStrengthValue;
+
+                double[] values = new double[currentTransitionBufferFramesArray.Count];
+
+                for (int i = 0; i < currentTransitionBufferFramesArray.Count; i++)
+                {
+                    totalStrengthValue = 0;
+
+                    for (long j = startIndex; j < endIndex; j++)
+                    {
+                        totalStrengthValue += currentTransitionBufferFramesArray[i].bufferArray[j];                        
+                    }
+
+                    totalStrengthValue /= (endIndex - startIndex);
+
+                    totalStrengthValue = Math.Round(totalStrengthValue);
+
+                    values[i] = totalStrengthValue;
+                }
+
+                return values;
+            }
+
+            return null;
+        }
+
+        public double[] GetAveragedStrengthOverTimeForRange(long startIndex, long endIndex)
+        {
+            if (bufferFramesArray.Count > 0)
+            {
+                double[] values = new double[bufferFramesArray.Count];
+
+                double totalStrengthValue;
+
+                int i = startBufferIndex;
+
+                int k = 0;
+
+                do
+                {
+                    if (i >= bufferFramesArray.Count)
+                        i = 0;
+
+                    totalStrengthValue = 0;
+
+                    for (long j = startIndex; j < endIndex; j++)
+                    {
+                        totalStrengthValue += bufferFramesArray[i].bufferArray[j];
+                    }
+
+                    totalStrengthValue /= (endIndex - startIndex);
+
+                    totalStrengthValue /= bufferFramesArray[i].stackedFrames;
+
+                    totalStrengthValue = Math.Round(totalStrengthValue);
+
+                    values[k++] = totalStrengthValue;
+
+                    i++;
+                }
+                while (i != currentBufferIndex + 1);
+
+                return values;
+            }
+
+            return null;
+        }
+
         public double[] GetStrengthOverTimeForIndex(long index)
         {
             /*////if (currentTransitionBufferFramesArray.Count > 0)
@@ -372,9 +446,13 @@ namespace RTLSpectrumAnalyzerGUI
             return GetStrengthOverTimeForIndex((long) frequencyRange.lower);            
         }
 
-        public double[] GetStrengthOverTimeForRange(long lowerFrequency, long upperFrequency)
+        public double[] GetStrengthOverTimeForFrequencyRange(long lowerFrequency, long upperFrequency)
         {
-            if (bufferFramesArray.Count > 0)
+            Utilities.FrequencyRange frequencyRange = Utilities.GetIndicesForFrequencyRange(lowerFrequency, upperFrequency, parent.lowerFrequency, mainForm.binSize);
+
+            return GetStrengthOverTimeForRange((long) frequencyRange.lower, (long) frequencyRange.upper);
+
+            /*////if (bufferFramesArray.Count > 0)
             {
                 double[] values = new double[bufferFramesArray.Count];
 
@@ -412,7 +490,51 @@ namespace RTLSpectrumAnalyzerGUI
             }
 
             return null;
+            */
         }
+
+
+        public TransitionGradient GetTransitionsGradientForFrequency(long frequency)
+        {
+            Utilities.FrequencyRange frequencyRange = Utilities.GetIndicesForFrequencyRange(frequency, frequency, parent.lowerFrequency, mainForm.binSize);
+
+            double[] transitionsStrengthArray = GetAveragedStrengthOverTimeForIndex((long) frequencyRange.lower);
+         
+            Gradient gradient = SignalDataUtilities.SeriesTransitionGradient(transitionsStrengthArray, Gradient.divisionsCount);
+
+
+            return new TransitionGradient(Utilities.GetFrequencyFromIndex((long) frequencyRange.lower, parent.lowerFrequency, mainForm.binSize), (long)frequencyRange.lower, gradient.CalculateTransitionGradient(), this.transitions, gradient);
+        }
+
+
+
+        public TransitionGradient GetTransitionsGradient()
+        {            
+            if (bufferFramesArray.Count > 0)
+            {
+                Gradient gradient;               
+
+                double[] transitionsStrengthArray;
+
+                TransitionGradient transitionGradient;
+
+                transitionsStrengthArray = GetAveragedStrengthOverTimeForRange(0, bufferFramesArray[0].bufferArray.Length);
+                gradient = SignalDataUtilities.SeriesTransitionGradient(transitionsStrengthArray, Gradient.divisionsCount);
+
+                double gradientStrength = gradient.CalculateTransitionGradient();
+
+                long index = bufferFramesArray[0].bufferArray.Length/2;
+
+                long width = bufferFramesArray[0].bufferArray.Length / 2;
+
+                transitionGradient = new TransitionGradient(Utilities.GetFrequencyFromIndex((long)(index), parent.lowerFrequency, mainForm.binSize), index, gradientStrength, this.transitions,gradient,width, Utilities.GetFrequencyFromIndex((long)(index-width), parent.lowerFrequency, mainForm.binSize), Utilities.GetFrequencyFromIndex((long)(index+width), parent.lowerFrequency, mainForm.binSize));
+
+                return transitionGradient;
+            }
+
+            return null;
+        }
+
 
         public TransitionGradientArray GetStrongestTransitionsGradientFrequency()
         {
@@ -420,6 +542,8 @@ namespace RTLSpectrumAnalyzerGUI
 
             if (bufferFramesArray.Count > 0)
             {
+                Gradient gradient, maxGradient;
+
                 double maxGradientStrength = Double.NaN, gradientStrength;
 
                 int maxIndex = -1;
@@ -428,12 +552,15 @@ namespace RTLSpectrumAnalyzerGUI
 
                 TransitionGradient strongestTransitionGradient;
 
-                long inc = (long) (FREQUENCY_SEGMENT_SIZE / mainForm.binSize);
+                ////long inc = (long) (FREQUENCY_SEGMENT_SIZE / mainForm.binSize);
+
+                long inc = (long)(10000/ mainForm.binSize);
 
                 long segmentEnd;                               
 
                 for (long i = 0; i < bufferFramesArray[0].bufferArray.Length; i+=inc)
                 {
+                    maxGradient = null;
                     maxGradientStrength = Double.NaN;
                     maxIndex = -1;
 
@@ -444,19 +571,25 @@ namespace RTLSpectrumAnalyzerGUI
                         transitionsStrengthArray = GetAveragedStrengthOverTimeForIndex(j);
                         ////transitionsStrengthArray = GetStrengthOverTimeForIndex(j);                        
 
-                        gradientStrength = SignalDataUtilities.Series2ndVS1stHalfAvgStrength(transitionsStrengthArray);
+                        gradient = SignalDataUtilities.SeriesTransitionGradient(transitionsStrengthArray, Gradient.divisionsCount);
+
+                        gradientStrength = gradient.CalculateTransitionGradient();
+
+                        ////gradientStrength = gradient.strength;
 
                         ////gradientStrength = SignalDataUtilities.Series2ndVS1stHalfAvgStrength(transitionsStrengthArray) * transitions;
 
                         if (Double.IsNaN(maxGradientStrength) || gradientStrength > maxGradientStrength)
                         {
+                            maxGradient = gradient;
+
                             maxGradientStrength = gradientStrength;
 
                             maxIndex = (int)j;
                         }
                     }
 
-                    strongestTransitionGradient = new TransitionGradient(Utilities.GetFrequencyFromIndex((long)(maxIndex), parent.lowerFrequency, mainForm.binSize), maxIndex, maxGradientStrength, this.transitions);
+                    strongestTransitionGradient = new TransitionGradient(Utilities.GetFrequencyFromIndex((long)(maxIndex), parent.lowerFrequency, mainForm.binSize), maxIndex, maxGradientStrength, this.transitions, maxGradient);
                     transitionGradientArray.Add(strongestTransitionGradient);
                 }
             }
@@ -478,17 +611,40 @@ namespace RTLSpectrumAnalyzerGUI
 
                 double avgStackedFrames;
 
+                Gradient gradient;
+
                 for (long i = 0; i < bufferFramesArray[0].bufferArray.Length; i++)
                 {
                     transitionsStrengthArray = GetStrengthOverTimeForIndex(i);
 
-                    gradientStrength = SignalDataUtilities.Series2ndVS1stHalfAvgStrength(transitionsStrengthArray);
+                    ////gradientStrength = SignalDataUtilities.SeriesTransitionGradient(transitionsStrengthArray);
+
+                    gradient = SignalDataUtilities.SeriesTransitionGradient(transitionsStrengthArray, Gradient.divisionsCount);
 
                     avgStackedFrames = GetAverageStackedFramesForIndex(i);
 
-                    gradients[gradients.Count - 1].gradientArray[i] = new Gradient(gradientStrength, avgStackedFrames);
-                }                
-            }            
+                    gradient.stackedFrames = avgStackedFrames;
+
+                    ////gradients[gradients.Count - 1].gradientArray[i] = new Gradient(gradientStrength, avgStackedFrames);
+
+                    gradients[gradients.Count - 1].gradientArray[i] = gradient;
+                }
+
+                gradients[gradients.Count - 1].CalculateAverage();
+            }
+        }
+
+        public double GetAverageForGradients()
+        {
+            double average = 0;
+            for (int i = 0; i < gradients.Count; i++)
+            {
+                average += gradients[i].average;
+            }
+
+            average /= gradients.Count;
+
+            return average;
         }
 
         public int EvaluatereradiatedRankingCategory()
@@ -598,21 +754,53 @@ namespace RTLSpectrumAnalyzerGUI
             return true;
         }
 
-        public void GraphData(System.Windows.Forms.DataVisualization.Charting.Chart chart, double[] data)
+        public void GraphData(System.Windows.Forms.DataVisualization.Charting.Chart chart, double[] data, string series = "Series1", bool setMinMax = true)
         {
             try
             {                
                 System.Windows.Forms.DataVisualization.Charting.DataPoint graphPoint;                
                 
-                chart.Series["Series"].Points.Clear();
+                chart.Series[series].Points.Clear();
 
                 double min = Double.NaN, max = Double.NaN;
-                
+
+
+                double divisionCount;
+
+                if (Gradient.divisionsCount == -1)
+                    divisionCount = data.Length;
+                else
+                    divisionCount = Gradient.divisionsCount;
+
+
                 for (int i = 0; i < data.Length; i++)
                 {
-                    graphPoint = new System.Windows.Forms.DataVisualization.Charting.DataPoint(chart.Series["Series"].Points.Count, data[i]);
+                    if (series == "Series1")
+                    {
+                        graphPoint = new System.Windows.Forms.DataVisualization.Charting.DataPoint(chart.Series[series].Points.Count, data[i]);
 
-                    chart.Series["Series"].Points.Add(graphPoint);
+                        chart.Series[series].Points.Add(graphPoint);
+                    }
+                    else
+                    if (series == "Series2")
+                    {
+                        graphPoint = new System.Windows.Forms.DataVisualization.Charting.DataPoint(chart.Series[series].Points.Count, data[i]);
+
+                        ////graphPoint.SetValueXY(((float)i/5) * chart.Series["Series1"].Points.Count, data[i]);
+                        ////graphPoint.SetValueXY(((float)i / divisionCount) * chart.Series["Series1"].Points.Count, data[i]);
+
+                        chart.Series[series].Points.Add(graphPoint);
+
+                        /*////if (i < data.Length - 1)
+                        {
+                            graphPoint = new System.Windows.Forms.DataVisualization.Charting.DataPoint(chart.Series[series].Points.Count, data[i]);
+
+                            graphPoint.SetValueXY(((float)(i + 1) / divisionCount) * chart.Series["Series1"].Points.Count, data[i]);
+
+                            chart.Series[series].Points.Add(graphPoint);
+                        }*/
+                    }
+                    
 
                     if (Double.IsNaN(min) || data[i] < min)
                         min = data[i];
@@ -624,8 +812,30 @@ namespace RTLSpectrumAnalyzerGUI
                         max += 0.1;
                 }
 
-                chart.ChartAreas[0].AxisY.Minimum = min;
-                chart.ChartAreas[0].AxisY.Maximum = max;
+                setMinMax = false;
+
+                if (setMinMax)
+                {
+                    chart.ChartAreas[0].AxisY.Minimum = min;
+                    chart.ChartAreas[0].AxisY.Maximum = max;
+
+                    chart.ChartAreas[0].AxisY2.Minimum = min;
+                    chart.ChartAreas[0].AxisY2.Maximum = max;
+                }
+                else
+                {
+                    if (series == "Series1")
+                    {
+                        chart.ChartAreas[0].AxisY.Minimum = min;
+                        chart.ChartAreas[0].AxisY.Maximum = max;
+                    }
+                    else
+                    if (series == "Series2")
+                    {
+                        chart.ChartAreas[0].AxisY2.Minimum = min;
+                        chart.ChartAreas[0].AxisY2.Maximum = max;
+                    }
+                }
             }
             catch (Exception ex)
             {

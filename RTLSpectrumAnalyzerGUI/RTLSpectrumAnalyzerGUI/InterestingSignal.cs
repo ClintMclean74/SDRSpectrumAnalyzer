@@ -9,6 +9,7 @@ namespace RTLSpectrumAnalyzerGUI
         public int index = -1;
         public double strength = 0;
         public double strengthDif = 0;
+        public double avgGradientStrength;
         public double rating = 0;
         public double frequency = 0;
 

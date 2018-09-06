@@ -98,7 +98,7 @@ namespace RTLSpectrumAnalyzerGUI
         }
 
 
-        private void ShowTransitionDialog()
+        public void ShowTransitionDialog()
         {
             if (Properties.Settings.Default.DontShowInfoBoxes[(int) UserInfoDialogs.TransitionDialog] != 1)
             {
@@ -220,6 +220,16 @@ namespace RTLSpectrumAnalyzerGUI
         {
             if (_form_resize != null)
                 _form_resize._resize();
+        }
+
+        private void chart8_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void chart8_AxisViewChanged(object sender, System.Windows.Forms.DataVisualization.Charting.ViewEventArgs e)
+        {
+            Utilities.AutoAdjustChartZoom(chart8, e, "Series2");
         }
     }
 }

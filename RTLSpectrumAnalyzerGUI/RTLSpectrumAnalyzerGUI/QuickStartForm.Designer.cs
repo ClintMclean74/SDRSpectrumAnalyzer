@@ -41,6 +41,7 @@
             this.checkBox10 = new System.Windows.Forms.CheckBox();
             this.checkBox1 = new System.Windows.Forms.CheckBox();
             this.label4 = new System.Windows.Forms.Label();
+            this.checkBox2 = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // label9
@@ -82,7 +83,7 @@
             // button4
             // 
             this.button4.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.button4.Location = new System.Drawing.Point(337, 259);
+            this.button4.Location = new System.Drawing.Point(337, 289);
             this.button4.Margin = new System.Windows.Forms.Padding(4);
             this.button4.Name = "button4";
             this.button4.Size = new System.Drawing.Size(108, 34);
@@ -197,11 +198,23 @@
             this.label4.Text = "(uncheck when doing other things for better computer performance.\r\nCan also be se" +
     "lected from within the program)\r\n";
             // 
+            // checkBox2
+            // 
+            this.checkBox2.AutoSize = true;
+            this.checkBox2.Location = new System.Drawing.Point(13, 260);
+            this.checkBox2.Margin = new System.Windows.Forms.Padding(4);
+            this.checkBox2.Name = "checkBox2";
+            this.checkBox2.Size = new System.Drawing.Size(200, 21);
+            this.checkBox2.TabIndex = 41;
+            this.checkBox2.Text = "Transitions Analyses Mode";
+            this.checkBox2.UseVisualStyleBackColor = true;
+            // 
             // quickStartForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(452, 301);
+            this.ClientSize = new System.Drawing.Size(452, 328);
+            this.Controls.Add(this.checkBox2);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.checkBox1);
             this.Controls.Add(this.checkBox10);
@@ -237,5 +250,6 @@
         public System.Windows.Forms.CheckBox checkBox10;
         public System.Windows.Forms.CheckBox checkBox1;
         private System.Windows.Forms.Label label4;
+        public System.Windows.Forms.CheckBox checkBox2;
     }
 }

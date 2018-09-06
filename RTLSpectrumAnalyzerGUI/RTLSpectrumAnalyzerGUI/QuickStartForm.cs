@@ -16,6 +16,8 @@ namespace RTLSpectrumAnalyzerGUI
 
         private void button4_Click(object sender, EventArgs e)
         {
+            mainForm.transitionAnalysesMode = checkBox2.Checked;
+
             if (checkBox1.Checked)
                 mainForm.checkBox8.Checked = mainForm.checkBox13.Checked = mainForm.showGraphs = checkBox1.Checked;
             else
@@ -33,7 +35,12 @@ namespace RTLSpectrumAnalyzerGUI
                 mainForm.textBox3.Text = textBox3.Text;                
 
                 mainForm.ActivateSettings();
-            }            
+            }
+
+            if (mainForm.transitionAnalysesMode)
+            {                
+                mainForm.InitializeTransitionSignalsToBeAnalysed(10, mainForm.dataLowerFrequency, mainForm.dataUpperFrequency);                
+            }
 
             mainForm.RecordSeries2();
 

@@ -54,5 +54,10 @@ namespace RTLSpectrumAnalyzerGUI
                 Properties.Settings.Default.DontShowInfoBoxes[id] = 0;                
             }
         }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }

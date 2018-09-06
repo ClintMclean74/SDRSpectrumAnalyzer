@@ -11,13 +11,23 @@ namespace RTLSpectrumAnalyzerGUI
         public double strength;
         public long transitions;
         public int ranking = -1;
+        public Gradient gradient;
+        public long rangeWidth;
+        public long startFrequency;
+        public long endFrequency;
 
-        public TransitionGradient(long frequency, long index, double strength, long transitions)
+        public TransitionGradient(long frequency, long index, double strength, long transitions, Gradient gradient, long rangeWidth=1, long startFrequency = -1, long endFrequency = -1)
         {
             this.index = index;
             this.frequency = frequency;
             this.strength = strength;
             this.transitions = transitions;
+            this.gradient = gradient;
+
+            this.rangeWidth = rangeWidth;
+
+            this.startFrequency = startFrequency;
+            this.endFrequency = endFrequency;
         }
     }
 
@@ -32,7 +42,8 @@ namespace RTLSpectrumAnalyzerGUI
 
         public long Add(TransitionGradient transitionGradient)
         {
-            array.Add(transitionGradient);
+            if (transitionGradient!=null)
+                array.Add(transitionGradient);
 
             return array.Count;
         }
@@ -47,6 +58,17 @@ namespace RTLSpectrumAnalyzerGUI
             return array.Count;
         }
 
+        public TransitionGradient GetTransitionGradientForFrequency(long startFrequency, long endFrequency, double tolerance = 100)
+        {            
+            for (int i = 0; i < array.Count; i++)
+            {
+                if (Math.Abs(startFrequency - array[i].startFrequency) <= tolerance && Math.Abs(endFrequency - array[i].endFrequency) <= tolerance)
+                    return array[i];
+            }
+
+            return null;
+        }
+
         public TransitionGradient GetTransitionGradientForFrequency(long frequency, double tolerance=100)
         {
             long min = 999999999;
@@ -55,13 +77,16 @@ namespace RTLSpectrumAnalyzerGUI
 
             for (int i = 0; i < array.Count; i++)
             {
-                dif = Math.Abs(frequency - array[i].frequency);
-
-                if (min == 999999999 || dif < min)
+                if (array[i] != null)
                 {
-                    min = dif;
+                    dif = Math.Abs(frequency - array[i].frequency);
 
-                    minIndex = i;
+                    if (min == 999999999 || dif < min)
+                    {
+                        min = dif;
+
+                        minIndex = i;
+                    }
                 }
             }
 
@@ -192,8 +217,15 @@ namespace RTLSpectrumAnalyzerGUI
             upperFrequency = reader.ReadUInt32();
             binSize = reader.ReadDouble();
 
-            bufferFrames.LoadData(reader);
-            transitionBufferFrames.LoadData(reader);
+            try
+            {
+                bufferFrames.LoadData(reader);
+                transitionBufferFrames.LoadData(reader);
+            }
+            catch(Exception  ex)
+            {
+
+            }
         }
 
         public void Change(BinDataMode prevMode, BinDataMode newMode)
@@ -288,8 +320,18 @@ namespace RTLSpectrumAnalyzerGUI
             return null;
         }
 
-        public TransitionGradientArray GetStrongestTransitionsFrequencyGradientArray()
+
+        public TransitionGradient GetTransitionsGradientForFrequency(long frequency)
         {
+            BufferFramesObject bufferFramesObjectForFrequency = GetBufferFramesObjectForFrequency(frequency);
+
+            return bufferFramesObjectForFrequency.transitionBufferFrames.GetTransitionsGradientForFrequency(frequency);
+        }
+
+        public TransitionGradientArray GetStrongestTransitionsFrequencyGradientArray(bool frequencyRanges)
+        {
+            ////frequencyRanges = false;
+
             TransitionGradientArray transitionGradientArray = new TransitionGradientArray();
 
             TransitionGradientArray transitionGradientArrayZoomed;
@@ -305,9 +347,16 @@ namespace RTLSpectrumAnalyzerGUI
             {
                 ////if (bufferFramesObjects[i].possibleReradiatedFrequencyRange)
                 {
-                    transitionGradientArrayZoomed = bufferFramesObjects[i].transitionBufferFrames.GetStrongestTransitionsGradientFrequency();
+                    if (!frequencyRanges)
+                    {
+                        transitionGradientArrayZoomed = bufferFramesObjects[i].transitionBufferFrames.GetStrongestTransitionsGradientFrequency();
 
-                    transitionGradientArray.AddArray(transitionGradientArrayZoomed);
+                        transitionGradientArray.AddArray(transitionGradientArrayZoomed);
+                    }
+                    else
+                    {
+                        transitionGradientArray.Add(bufferFramesObjects[i].transitionBufferFrames.GetTransitionsGradient());
+                    }
                 }
             }
 

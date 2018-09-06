@@ -1,8 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System;
+using System.Data;
+using System.Linq;
 using System.IO;
 using System.Reflection;
-
 
 namespace RTLSpectrumAnalyzerGUI
 {
@@ -18,6 +19,17 @@ namespace RTLSpectrumAnalyzerGUI
                 this.lower = lower;
                 this.upper = upper;
             }
+        }
+
+        public static bool ExistsIn(int[] seriesToBeCleared, int item)
+        {
+            for(int i=0; i<seriesToBeCleared.Length; i++)
+            {
+                if (seriesToBeCleared[i] == item)
+                    return true;
+            }
+
+            return false;
         }
 
         public static FrequencyRange GetFrequencyRangeFromFrequency(long frequency)
@@ -111,6 +123,71 @@ namespace RTLSpectrumAnalyzerGUI
                 string result = reader.ReadToEnd();
 
                 return result;
+            }
+        }
+
+        public static double Interpolate2Points(System.Windows.Forms.DataVisualization.Charting.DataPoint p1, System.Windows.Forms.DataVisualization.Charting.DataPoint p2, double x)
+        {
+            var x0 = p1.XValue;
+            var y0 = p1.YValues[0];
+            var x1 = p2.XValue;
+            var y1 = p2.YValues[0];
+            return y0 + ((x - x0) * y1 - (x - x0) * y0) / (x1 - x0);
+        }
+
+        public static void AutoAdjustChartZoom(System.Windows.Forms.DataVisualization.Charting.Chart chart, System.Windows.Forms.DataVisualization.Charting.ViewEventArgs e, string series)
+        {
+            var axisY = chart.ChartAreas[0].AxisY;
+            var axisY2 = chart.ChartAreas[0].AxisY2;
+
+            var xRangeStart = e.Axis.ScaleView.ViewMinimum;
+            var xRangeEnd = e.Axis.ScaleView.ViewMaximum;
+
+            for (int i = 0; i < chart.Series.Count; i++)
+            {
+                // compute the Y values for the points crossing the range edges
+                double? yRangeStart = null;
+                var pointBeforeRangeStart = chart.Series[i].Points.FirstOrDefault(x => x.XValue <= xRangeStart);
+                var pointAfterRangeStart = chart.Series[i].Points.FirstOrDefault(x => x.XValue > xRangeStart);
+                if (pointBeforeRangeStart != null && pointAfterRangeStart != null)
+                    yRangeStart = Interpolate2Points(pointBeforeRangeStart, pointAfterRangeStart, xRangeStart);
+
+                double? yRangeEnd = null;
+                var pointBeforeRangeEnd = chart.Series[i].Points.FirstOrDefault(x => x.XValue <= xRangeEnd);
+                var pointAfterRangeEnd = chart.Series[i].Points.FirstOrDefault(x => x.XValue > xRangeEnd);
+                if (pointBeforeRangeEnd != null && pointAfterRangeEnd != null)
+                    yRangeEnd = Interpolate2Points(pointBeforeRangeEnd, pointAfterRangeEnd, xRangeEnd);
+
+                var edgeValues = new[] { yRangeStart, yRangeEnd }.Where(x => x.HasValue).Select(x => x.Value);
+
+                // find the points inside the range
+                var valuesInRange = chart.Series[i].Points
+                .Where(p => p.XValue >= xRangeStart && p.XValue <= xRangeEnd)
+                .Select(x => x.YValues[0]);
+
+                // find the minimum and maximum Y values
+                var values = valuesInRange.Concat(edgeValues);
+                double yMin;
+                double yMax;
+                if (values.Any())
+                {
+                    yMin = values.Min();
+                    yMax = values.Max();
+                }
+                else
+                {
+                    yMin = chart.Series[i].Points.Min(x => x.YValues[0]);
+                    yMax = chart.Series[i].Points.Max(x => x.YValues[0]);
+                }
+
+
+                if (i==0)
+                {
+                    axisY.ScaleView.Zoom(yMin, yMax);                    
+                }
+                else
+                    if (axisY2 != null)
+                        axisY2.ScaleView.Zoom(yMin, yMax);
             }
         }
     }

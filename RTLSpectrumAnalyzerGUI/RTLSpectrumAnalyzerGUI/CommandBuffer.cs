@@ -94,5 +94,13 @@ namespace RTLSpectrumAnalyzerGUI
             else
                 return null;
         }        
+
+        public void Clear()
+        {
+            commandArray.Clear();
+
+            startBufferIndex = 0;
+            commandCurrentBufferIndex = -1;
+        }
     }
 }
