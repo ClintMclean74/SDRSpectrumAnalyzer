@@ -1809,6 +1809,8 @@
             // checkBox14
             // 
             this.checkBox14.AutoSize = true;
+            this.checkBox14.Checked = true;
+            this.checkBox14.CheckState = System.Windows.Forms.CheckState.Checked;
             this.checkBox14.Location = new System.Drawing.Point(1645, 734);
             this.checkBox14.Margin = new System.Windows.Forms.Padding(4);
             this.checkBox14.Name = "checkBox14";

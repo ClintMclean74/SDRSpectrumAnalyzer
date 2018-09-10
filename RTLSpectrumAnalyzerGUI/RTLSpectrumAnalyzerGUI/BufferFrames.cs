@@ -17,6 +17,7 @@ namespace RTLSpectrumAnalyzerGUI
         public const uint MIN_BUFFER_SIZE = 10;
 
         public const uint TRANSITION_LENGTH = 16 * 1000;
+        ////public const uint TRANSITION_LENGTH = 4 * 1000;
 
         public const long TRANSITIONS_ANALYSES_MODE_TIME_DELAY_BEFORE_ZOOMING = 3 * 1000;
 
@@ -812,7 +813,7 @@ namespace RTLSpectrumAnalyzerGUI
                         max += 0.1;
                 }
 
-                setMinMax = false;
+                /////////setMinMax = false;
 
                 if (setMinMax)
                 {
@@ -824,7 +825,7 @@ namespace RTLSpectrumAnalyzerGUI
                 }
                 else
                 {
-                    if (series == "Series1")
+                    /*////////if (series == "Series1")
                     {
                         chart.ChartAreas[0].AxisY.Minimum = min;
                         chart.ChartAreas[0].AxisY.Maximum = max;
@@ -834,8 +835,10 @@ namespace RTLSpectrumAnalyzerGUI
                     {
                         chart.ChartAreas[0].AxisY2.Minimum = min;
                         chart.ChartAreas[0].AxisY2.Maximum = max;
-                    }
+                    }*/
                 }
+
+                chart.ChartAreas[0].AxisY2.Interval = 0;
             }
             catch (Exception ex)
             {

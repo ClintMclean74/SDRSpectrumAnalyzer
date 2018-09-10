@@ -180,16 +180,60 @@ namespace RTLSpectrumAnalyzerGUI
             ////gradientValues = SegmentSeries(gradientValues, 5);
 
             ////double[] gradientValues = data;
-             
-            for (int i = 0; i < data.Length; i++)
+
+            int i;
+
+            /*/////////for (i = 0; i < data.Length; i++)
             {
                 data[i] = data[i] * data[i];                
-            }
+            }*/
 
             ////gradientValues = Normalize(data, 1000000);
 
 
-            double[] gradientValues = data;
+            /////////double[] gradientValues = (double []) data.Clone();
+
+            double[] gradientValues = new double[data.Length];
+
+
+            double total1 = 0, total2 = 0;
+            
+
+            int firstLength = (int)(data.Length * 4 / 10);
+
+            int secondLength = data.Length - firstLength - 1;
+
+
+            for (i = 0; i < firstLength; i++)
+            {
+
+                total1 += data[i];
+            }
+
+            total1 /= firstLength;
+
+            for (; i < data.Length-1; i++)
+            {
+                total2 += data[i];
+            }
+
+            total2 /= secondLength;
+
+            double percentageIncrease = Math.Round(total2 / total1 * 100, 2);
+
+            for (i = 0; i < firstLength; i++)
+            {
+                gradientValues[i] = total1;
+                ////gradientValues[i] = 100;
+            }
+
+            for (; i < data.Length; i++)
+            {
+                gradientValues[i] = total2;
+                ////gradientValues[i] = percentageIncrease;
+            }
+
+            ////gradientValues = (double []) data.Clone();
 
 
             /*////
@@ -220,6 +264,8 @@ namespace RTLSpectrumAnalyzerGUI
 
 
             Gradient gradient = new Gradient(0, 1, gradientValues);
+
+            gradient.strength = percentageIncrease;
 
             return gradient;
         }

@@ -38,8 +38,9 @@ namespace RTLSpectrumAnalyzerGUI
             }
 
             if (mainForm.transitionAnalysesMode)
-            {                
-                mainForm.InitializeTransitionSignalsToBeAnalysed(10, mainForm.dataLowerFrequency, mainForm.dataUpperFrequency);                
+            {
+                /////////mainForm.InitializeTransitionSignalsToBeAnalysed(10, mainForm.dataLowerFrequency, mainForm.dataUpperFrequency);                
+                mainForm.InitializeTransitionSignalsToBeAnalysed(Form1.MAX_TRANSITION_SCANS, mainForm.dataLowerFrequency, mainForm.dataUpperFrequency);
             }
 
             mainForm.RecordSeries2();

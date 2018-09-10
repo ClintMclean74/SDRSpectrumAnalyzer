@@ -130,27 +130,38 @@ namespace RTLSpectrumAnalyzerGUI
 
         public double CalculateTransitionGradient()
         {
+            ////return divisions[divisions.Length - 1];
             double[] values = divisions;
             /////////double[] values = SignalDataUtilities.Reduce(divisions, Gradient.divisionsCount);
 
-            double total = 0;
+            double total1 = 0, total2 = 0;
 
             int i;
 
-            for (i = 0; i < (int)(values.Length / 2); i++)
+            int firstLength = (int)(values.Length * 4 / 10);
+
+            int secondLength = values.Length - firstLength;
+
+
+            for (i = 0; i < firstLength; i++)
             {
 
-                total -= values[i];
+                total1 += values[i];
             }
+
+            total1 /= firstLength;
 
             for (; i < values.Length; i++)
             {
-                total += values[i];
+                total2 += values[i];
             }
 
+            total2 /= secondLength;
 
-            return total;
-            
+
+            return Math.Round(total2 / total1 * 100, 2);
+
+
 
             /*////double reradiatedChange = LargestIncreaseDecreaseChange(values);
 
@@ -185,11 +196,11 @@ namespace RTLSpectrumAnalyzerGUI
             return thirdAnd4Quarter - secondQuarter;
 
 /*//////
-            /*/////////reradiatedChange = values[2] - values[3];
+   /*/////////reradiatedChange = values[2] - values[3];
 
-            reradiatedChange -= (Math.Abs(values[0]) + Math.Abs(values[1]) + Math.Abs(values[4]));
-            */
-            
+   reradiatedChange -= (Math.Abs(values[0]) + Math.Abs(values[1]) + Math.Abs(values[4]));
+   */
+
 
             /*////double firstThird = 0, secondThird = 0, lastThird = 0;
 

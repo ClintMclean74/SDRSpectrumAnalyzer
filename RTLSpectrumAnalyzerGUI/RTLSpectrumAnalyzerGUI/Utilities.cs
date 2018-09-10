@@ -81,6 +81,24 @@ namespace RTLSpectrumAnalyzerGUI
             return frequencyRange;
         }
 
+        public static FrequencyRange GetFrequencyRangeFromString(string frequencyStr)
+        {
+            string startFrequencyString = frequencyStr.Substring(0, frequencyStr.IndexOf("to") - 4);
+
+            int secondFrequencyStrStartIndex = frequencyStr.IndexOf("to") + 2;
+            int secondFrequencyStrLength = frequencyStr.Length - 3 - secondFrequencyStrStartIndex;
+
+            string endFrequencyString = frequencyStr.Substring(secondFrequencyStrStartIndex, secondFrequencyStrLength);
+
+            long startFrequency = (long)(double.Parse(startFrequencyString)) * 1000000;
+
+            long endFrequency = (long)(double.Parse(endFrequencyString)) * 1000000;
+
+            return new FrequencyRange(startFrequency, endFrequency);
+        }
+
+
+
         public static bool Equals(double a, double b, double tolerance)
         {
             if (Math.Abs(a - b) <= tolerance)
@@ -108,6 +126,30 @@ namespace RTLSpectrumAnalyzerGUI
             }
 
             return closestIndex;
+        }
+
+        public static double[] ConvertFloatArrayToDoubleArray(float[] floatArray)
+        {
+            double[] doubleArray= new double[floatArray.Length];
+
+            for (int i = 0; i < floatArray.Length; i++)
+            {
+                doubleArray[i] = floatArray[i];
+            }
+
+            return doubleArray;
+        }
+
+        public static float[] ConvertDoubleArrayToFloatArray(double[] doubleArray)
+        {
+            float[] floatArray = new float[doubleArray.Length];
+
+            for (int i = 0; i < doubleArray.Length; i++)
+            {
+                floatArray[i] = (float) doubleArray[i];
+            }
+
+            return floatArray;
         }
 
         public static string GetResourceText(string textResourceName)

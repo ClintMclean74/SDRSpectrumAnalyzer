@@ -21,7 +21,7 @@ namespace RTLSpectrumAnalyzerGUI
 
         private void chart1_AxisViewChanged(object sender, System.Windows.Forms.DataVisualization.Charting.ViewEventArgs e)
         {
-            Utilities.AutoAdjustChartZoom(chart1, e, "Series");
+            ////Utilities.AutoAdjustChartZoom(chart1, e, "Series");
         }
 
         private void chart1_Click(object sender, EventArgs e)

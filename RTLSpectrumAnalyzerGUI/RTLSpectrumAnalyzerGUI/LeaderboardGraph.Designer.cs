@@ -31,6 +31,7 @@
             System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea1 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
             System.Windows.Forms.DataVisualization.Charting.Legend legend1 = new System.Windows.Forms.DataVisualization.Charting.Legend();
             System.Windows.Forms.DataVisualization.Charting.Series series1 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.Series series2 = new System.Windows.Forms.DataVisualization.Charting.Series();
             System.Windows.Forms.DataVisualization.Charting.Title title1 = new System.Windows.Forms.DataVisualization.Charting.Title();
             this.chart1 = new System.Windows.Forms.DataVisualization.Charting.Chart();
             ((System.ComponentModel.ISupportInitialize)(this.chart1)).BeginInit();
@@ -38,6 +39,7 @@
             // 
             // chart1
             // 
+            chartArea1.AxisY2.LabelStyle.Enabled = false;
             chartArea1.CursorX.IsUserSelectionEnabled = true;
             chartArea1.InnerPlotPosition.Auto = false;
             chartArea1.InnerPlotPosition.Height = 79.54841F;
@@ -54,8 +56,17 @@
             series1.ChartArea = "ChartArea1";
             series1.Color = System.Drawing.Color.Red;
             series1.Legend = "Legend1";
+            series1.LegendText = "Rating";
             series1.Name = "Series";
+            series2.BorderWidth = 10;
+            series2.ChartArea = "ChartArea1";
+            series2.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
+            series2.Color = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(192)))), ((int)(((byte)(0)))));
+            series2.Legend = "Legend1";
+            series2.LegendText = "Density Graph";
+            series2.Name = "AvgSeries";
             this.chart1.Series.Add(series1);
+            this.chart1.Series.Add(series2);
             this.chart1.Size = new System.Drawing.Size(1718, 748);
             this.chart1.TabIndex = 2;
             this.chart1.Text = "chart2";

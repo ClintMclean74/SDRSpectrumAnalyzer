@@ -29,6 +29,8 @@ namespace RTLSpectrumAnalyzerGUI
         public static long lastInputTime;
 
         public const long AFTER_RECORD_FAR_INPUT_BUFFER = 4 * 1000;
+
+        public const int WM_MOUSEMOVE = 0x200;
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -139,10 +141,10 @@ namespace RTLSpectrumAnalyzerGUI
             /*////if (!mainForm.showingCheckForReradiatedFrequencyDialog)
                 mainForm.CheckForReradiatedFrequency();
                 */
-
+            
             double distance = this.GetMovementOverTime(1000);
 
-            if (distance > 100)
+            if (distance > 100 || (Int32)wParam!=GUIInput.WM_MOUSEMOVE)
             {            
                 mainForm.CheckForStartRecordingNearSeries();
             }
