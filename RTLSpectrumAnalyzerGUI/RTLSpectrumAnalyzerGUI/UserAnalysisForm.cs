@@ -29,6 +29,12 @@ namespace RTLSpectrumAnalyzerGUI
 
         private void UserAnalysisForm_FormClosing(object sender, FormClosingEventArgs e)
         {
+            mainForm.showGraphs = mainForm.originalUserSettingShowGraphs;
+
+            if (mainForm.showGraphs)
+                mainForm.checkBox8.Checked = true;
+
+
             mainForm.ResumeAutomatedAnalysis();
 
             this.Hide();

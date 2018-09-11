@@ -6,6 +6,53 @@ namespace RTLSpectrumAnalyzerGUI
 {
     public class SignalDataUtilities
     {
+
+      
+        
+
+        public static List<InterestingSignal> CreateRangeList(List<InterestingSignal> frequencyList)
+        {
+            List<InterestingSignal> rangeList = new List<InterestingSignal>();
+
+            Utilities.FrequencyRange frequencyRange;
+
+            int rangeIndex;
+
+            InterestingSignal range;
+
+            for (int i = 0; i < frequencyList.Count; i++)
+            {
+                frequencyRange = Utilities.GetFrequencyRangeFromFrequency((long) frequencyList[i].frequency);
+
+                rangeIndex = rangeList.FindIndex(x => x.lowerFrequency == frequencyRange.lower && x.upperFrequency == frequencyRange.upper);
+
+                if (rangeIndex > -1)
+                {
+                    rangeList[rangeIndex].rangeTotal += frequencyList[i].rating;
+
+                    rangeList[rangeIndex].rangeTotalCount++;
+                }
+                else
+                {
+                    range = new InterestingSignal(0, 0, 0, (frequencyRange.lower + frequencyRange.upper) / 2, frequencyRange.lower, frequencyRange.upper);
+
+                    range.rangeTotal = frequencyList[i].rating;
+
+                    range.rangeTotalCount=1;
+
+                    rangeList.Add(range);
+                }
+            }
+
+            /*////for (int i = 0; i < rangeList.Count; i++)
+            {
+                rangeList[i].rating = rangeList[i].rangeTotal / rangeList[i].rangeTotalCount;
+            }*/
+
+            return rangeList;
+        }
+
+
         public static double[] ShiftTo0(double[] data)
         {
             double min = Double.NaN;

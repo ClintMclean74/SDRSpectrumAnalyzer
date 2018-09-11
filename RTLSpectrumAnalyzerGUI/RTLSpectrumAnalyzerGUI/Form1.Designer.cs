@@ -184,6 +184,8 @@
             this.button28 = new System.Windows.Forms.Button();
             this.button29 = new System.Windows.Forms.Button();
             this.checkBox14 = new System.Windows.Forms.CheckBox();
+            this.listBox5 = new System.Windows.Forms.ListBox();
+            this.label38 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.chart1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.chart2)).BeginInit();
             this.groupBox1.SuspendLayout();
@@ -1695,12 +1697,12 @@
             // 
             // button26
             // 
-            this.button26.Location = new System.Drawing.Point(1757, 967);
+            this.button26.Location = new System.Drawing.Point(1716, 914);
             this.button26.Margin = new System.Windows.Forms.Padding(4);
             this.button26.Name = "button26";
-            this.button26.Size = new System.Drawing.Size(132, 69);
+            this.button26.Size = new System.Drawing.Size(212, 28);
             this.button26.TabIndex = 97;
-            this.button26.Text = "Analyze \r\nLeaderboard Signals";
+            this.button26.Text = "Analyze Leaderboard Ranges";
             this.button26.UseVisualStyleBackColor = true;
             this.button26.Click += new System.EventHandler(this.button26_Click);
             // 
@@ -1775,7 +1777,7 @@
             // 
             // button27
             // 
-            this.button27.Location = new System.Drawing.Point(1727, 929);
+            this.button27.Location = new System.Drawing.Point(1716, 881);
             this.button27.Margin = new System.Windows.Forms.Padding(4);
             this.button27.Name = "button27";
             this.button27.Size = new System.Drawing.Size(191, 27);
@@ -1818,12 +1820,35 @@
             this.checkBox14.TabIndex = 127;
             this.checkBox14.Text = "Use Frequency Range for Transitions";
             this.checkBox14.UseVisualStyleBackColor = true;
+            this.checkBox14.CheckedChanged += new System.EventHandler(this.checkBox14_CheckedChanged);
+            // 
+            // listBox5
+            // 
+            this.listBox5.FormattingEnabled = true;
+            this.listBox5.ItemHeight = 16;
+            this.listBox5.Location = new System.Drawing.Point(1718, 964);
+            this.listBox5.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.listBox5.Name = "listBox5";
+            this.listBox5.Size = new System.Drawing.Size(191, 196);
+            this.listBox5.TabIndex = 128;
+            // 
+            // label38
+            // 
+            this.label38.AutoSize = true;
+            this.label38.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label38.Location = new System.Drawing.Point(1714, 944);
+            this.label38.Name = "label38";
+            this.label38.Size = new System.Drawing.Size(219, 18);
+            this.label38.TabIndex = 129;
+            this.label38.Text = "Leaderboard Frequency Ranges";
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1914, 1045);
+            this.Controls.Add(this.label38);
+            this.Controls.Add(this.listBox5);
             this.Controls.Add(this.checkBox14);
             this.Controls.Add(this.button29);
             this.Controls.Add(this.button28);
@@ -2092,6 +2117,8 @@
         private System.Windows.Forms.Button button28;
         private System.Windows.Forms.Button button29;
         private System.Windows.Forms.CheckBox checkBox14;
+        private System.Windows.Forms.ListBox listBox5;
+        private System.Windows.Forms.Label label38;
     }
 }
 

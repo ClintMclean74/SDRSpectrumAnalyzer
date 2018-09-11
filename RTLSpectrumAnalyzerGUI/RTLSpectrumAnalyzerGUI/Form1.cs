@@ -124,6 +124,7 @@ namespace RTLSpectrumAnalyzerGUI
 
         int deviceCount = 1;
 
+        List<InterestingSignal> leaderBoardRanges = new List<InterestingSignal>();
         List<InterestingSignal> leaderBoardSignals = new List<InterestingSignal>();
         List<InterestingSignal> interestingSignals = new List<InterestingSignal>();
         List<InterestingSignal> interestingSignalsForAnalysis = new List<InterestingSignal>();
@@ -235,6 +236,8 @@ namespace RTLSpectrumAnalyzerGUI
         public int analyzingTransitionsBeforeSuccessCount = 0;
 
         public bool showGraphs = true;
+
+        public bool originalUserSettingShowGraphs = true;        
 
         public int currentLeaderboardSignalBeingAnalyzedIndex = -1;
 
@@ -668,13 +671,13 @@ namespace RTLSpectrumAnalyzerGUI
             }
         }
 
-        private void ZoomToFrequency(long frequency)
+        private void ZoomToFrequency(long lowerFrequency, long upperFrequency = -1)
         {
             if (recordingSeries1 || recordingSeries2 || !automatedZooming)
             {
                 Command command = commandBuffer.GetMostRecentCommand();
 
-                commandBuffer.AddCommand("ZoomToFrequency:" + frequency);
+                commandBuffer.AddCommand("ZoomToFrequency:" + lowerFrequency + ":" + upperFrequency);
 
                 if (automatedZooming)
                 {
@@ -694,7 +697,7 @@ namespace RTLSpectrumAnalyzerGUI
 
                 analyzingTransitionsBeforeSuccessCount++;
 
-                Utilities.FrequencyRange frequencyRange = Utilities.GetFrequencyRangeFromFrequency(frequency);
+                Utilities.FrequencyRange frequencyRange = Utilities.GetFrequencyRangeFromFrequency(lowerFrequency);
                 graph1FrequencyRanges.Push(frequencyRange);
 
                 this.Invoke(new Action(() =>
@@ -711,7 +714,7 @@ namespace RTLSpectrumAnalyzerGUI
                 {
                     ActivateSettings(false);
 
-                    ZoomGraphsToFrequency(frequency);
+                    ZoomGraphsToFrequency(lowerFrequency, upperFrequency);
                 }
             }
         }
@@ -1532,59 +1535,75 @@ namespace RTLSpectrumAnalyzerGUI
             this.Invoke(new Action(() =>
             {
             showingCheckForReradiatedFrequencyDialog = true;
-            if (listBox2.Items.Count > 0)
-            {
-                string itemStr = (string)listBox2.Items[0];
+                if (listBox2.Items.Count > 0)
+                {
+                    string itemStr = (string)listBox2.Items[0];
 
-                string[] itemStrArray = itemStr.Split(':');
+                    string[] itemStrArray = itemStr.Split(':');
 
-                long reradiatedFrequency;
-
-                    if (itemStrArray[0].IndexOf("to") > -1)
-                    {
-                        Utilities.FrequencyRange frequencyRange = Utilities.GetFrequencyRangeFromString(itemStrArray[0]);
-
-                        reradiatedFrequency = (long) (frequencyRange.lower + frequencyRange.upper) / 2;
-                    }
-                    else
-                    {
-                        itemStrArray[0] = itemStrArray[0].Substring(0, itemStrArray[0].Length - 3);
-
-                        reradiatedFrequency = (long) (double.Parse(itemStrArray[0]) * 1000000);
-
-                    }
+                    long reradiatedFrequency;
 
                     string[] itemStrArray2 = itemStrArray[1].Split(' ');
-                    uint transitions = uint.Parse(itemStrArray2[2]);
 
-                    BufferFramesObject bufferFramesObjectForReradiatedFrequency = bufferFramesArray.GetBufferFramesObjectForFrequency(reradiatedFrequency);
+                    double percentageIncrease = double.Parse(itemStrArray2[1]);
 
-                    if (bufferFramesObjectForReradiatedFrequency != null)
+                    if (percentageIncrease > BufferFrames.minStrengthForRankings[1])                    
                     {
-                        BufferFramesObject zoomedOutBufferObject = bufferFramesArray.GetBufferFramesObject(0);
-
-                        long farFrames = GetAverageNumberOfFramesForFrequencyRegion(series1BinData, BinDataMode.Far, bufferFramesObjectForReradiatedFrequency.lowerFrequency, bufferFramesObjectForReradiatedFrequency.upperFrequency, zoomedOutBufferObject.lowerFrequency, binSize);
-                        long nearFrames = GetAverageNumberOfFramesForFrequencyRegion(series2BinData, BinDataMode.Near, bufferFramesObjectForReradiatedFrequency.lowerFrequency, bufferFramesObjectForReradiatedFrequency.upperFrequency, zoomedOutBufferObject.lowerFrequency, binSize);
-
-                        if (farFrames - userAnalysisCheckFarFrames > REQUIRED_FRAMES_BEFORE_USER_ANALYSIS && nearFrames - userAnalysisCheckNearFrames > REQUIRED_FRAMES_BEFORE_USER_ANALYSIS && listBox2.Items.Count > 0)
+                        if (itemStrArray[0].IndexOf("to") > -1)
                         {
-                            if (transitions >= REQUIRED_TRANSITIONS_BEFORE_USER_ANALYSIS)
+                            Utilities.FrequencyRange frequencyRange = Utilities.GetFrequencyRangeFromString(itemStrArray[0]);
+
+                            reradiatedFrequency = (long)(frequencyRange.lower + frequencyRange.upper) / 2;
+                        }
+                        else
+                        {
+                            itemStrArray[0] = itemStrArray[0].Substring(0, itemStrArray[0].Length - 3);
+
+                            reradiatedFrequency = (long)(double.Parse(itemStrArray[0]) * 1000000);
+
+                        }
+
+                        itemStrArray2 = itemStrArray[1].Split(' ');
+                        uint transitions = uint.Parse(itemStrArray2[2]);
+
+                        BufferFramesObject bufferFramesObjectForReradiatedFrequency = bufferFramesArray.GetBufferFramesObjectForFrequency(reradiatedFrequency);
+
+                        if (bufferFramesObjectForReradiatedFrequency != null)
+                        {
+                            BufferFramesObject zoomedOutBufferObject = bufferFramesArray.GetBufferFramesObject(0);
+
+                            long farFrames = GetAverageNumberOfFramesForFrequencyRegion(series1BinData, BinDataMode.Far, bufferFramesObjectForReradiatedFrequency.lowerFrequency, bufferFramesObjectForReradiatedFrequency.upperFrequency, zoomedOutBufferObject.lowerFrequency, binSize);
+                            long nearFrames = GetAverageNumberOfFramesForFrequencyRegion(series2BinData, BinDataMode.Near, bufferFramesObjectForReradiatedFrequency.lowerFrequency, bufferFramesObjectForReradiatedFrequency.upperFrequency, zoomedOutBufferObject.lowerFrequency, binSize);
+
+                            if (farFrames - userAnalysisCheckFarFrames > REQUIRED_FRAMES_BEFORE_USER_ANALYSIS && nearFrames - userAnalysisCheckNearFrames > REQUIRED_FRAMES_BEFORE_USER_ANALYSIS && listBox2.Items.Count > 0)
                             {
-                                int interestingSignalIndex = Utilities.FrequencyInSignals(reradiatedFrequency, STRONGEST_INTERESTING_AND_LEADERBOARD_SIGNALS_FOR_TRANSITIONS, interestingSignals);
-                                int leaderboardSignalIndex = Utilities.FrequencyInSignals(reradiatedFrequency, STRONGEST_INTERESTING_AND_LEADERBOARD_SIGNALS_FOR_TRANSITIONS, leaderBoardSignals);
-
-                                if (interestingSignalIndex > -1 && leaderboardSignalIndex > -1)
+                                if (transitions >= REQUIRED_TRANSITIONS_BEFORE_USER_ANALYSIS)
                                 {
-                                    userAnalysisCheckFarFrames = farFrames;
-                                    userAnalysisCheckNearFrames = nearFrames;
+                                    /*////int interestingSignalIndex = Utilities.FrequencyInSignals(reradiatedFrequency, STRONGEST_INTERESTING_AND_LEADERBOARD_SIGNALS_FOR_TRANSITIONS, interestingSignals);
+                                    int leaderboardSignalIndex = Utilities.FrequencyInSignals(reradiatedFrequency, STRONGEST_INTERESTING_AND_LEADERBOARD_SIGNALS_FOR_TRANSITIONS, leaderBoardSignals);
 
-                                    DialogResult dialogResult = MessageBox.Show("A frequency has been detected that could be reradiated from you, would you like to do a user analysis of this frequency?", "Possible reradiated frequency detected", MessageBoxButtons.YesNo);
+                                    if (interestingSignalIndex > -1 && leaderboardSignalIndex > -1)
+                                    */
+                                    int leaderboardSignalIndex = Utilities.FrequencyInSignals(reradiatedFrequency, STRONGEST_INTERESTING_AND_LEADERBOARD_SIGNALS_FOR_TRANSITIONS, leaderBoardRanges, true);
 
-                                    if (dialogResult == DialogResult.Yes)
+                                    if (leaderboardSignalIndex > -1)
                                     {
-                                        StopRecording();
+                                        userAnalysisCheckFarFrames = farFrames;
+                                        userAnalysisCheckNearFrames = nearFrames;
 
-                                        commandQueue.AddCommand("AnalyzeLeaderboardFrequency:" + leaderboardSignalIndex);
+                                        DialogResult dialogResult = MessageBox.Show("A frequency has been detected that could be reradiated from you, would you like to do a user analysis of this frequency?", "Possible reradiated frequency detected", MessageBoxButtons.YesNo);
+
+                                        if (dialogResult == DialogResult.Yes)
+                                        {
+                                            StopRecording();
+
+                                            originalUserSettingShowGraphs = showGraphs;
+                                            showGraphs = false;
+                                            checkBox8.Checked = checkBox13.Checked = false;
+
+                                            ////commandQueue.AddCommand("AnalyzeLeaderboardFrequency:" + reradiatedFrequency);
+                                            commandQueue.AddCommand("AnalyzeLeaderboardFrequency:" + leaderboardSignalIndex);
+                                        }
                                     }
                                 }
                             }
@@ -1778,6 +1797,41 @@ namespace RTLSpectrumAnalyzerGUI
                             listBox4.Items.Add(Utilities.GetFrequencyString(leaderBoardSignals[i].frequency) + ": " + Math.Round(leaderBoardSignals[i].rating, 2));
                         }
                     }
+
+
+                    leaderBoardRanges = SignalDataUtilities.CreateRangeList(leaderBoardSignals);
+
+
+                    leaderBoardRanges.Sort(delegate (InterestingSignal x, InterestingSignal y)
+                    {
+                        if (x == null)
+                            return 1;
+
+                        if (x.rangeTotal < y.rangeTotal)
+                            return 1;
+                        else if (x.rangeTotal == y.rangeTotal)
+                            return 0;
+                        else
+                            return -1;
+                    });
+
+                    if (leaderBoardRanges.Count > MAX_LEADER_BOARD_LIST_COUNT)
+                    {
+                        for (int j = leaderBoardRanges.Count - 1; j >= MAX_LEADER_BOARD_LIST_COUNT; j--)
+                        {
+                            leaderBoardRanges.RemoveAt(j);
+                        }
+                    }
+
+                    listBox5.Items.Clear();
+
+                    for (i = 0; i < leaderBoardRanges.Count; i++)
+                    {
+                        if (listBox5.Items.Count < MAX_LEADER_BOARD_LIST_COUNT)
+                        {
+                            listBox5.Items.Add(Utilities.GetFrequencyString(leaderBoardRanges[i].lowerFrequency) + " to " + Utilities.GetFrequencyString(leaderBoardRanges[i].upperFrequency) + ": " + Math.Round(leaderBoardRanges[i].rangeTotal, 2));
+                        }
+                    }
                 }
 
                 if (checkBox8.Checked || (checkBox13.Checked && analyzingNearFarTransitions) && checkBox10.Checked)
@@ -1922,7 +1976,7 @@ namespace RTLSpectrumAnalyzerGUI
             }
         }
 
-        private void AddGradientPoint(System.Windows.Forms.DataVisualization.Charting.Chart chart, TextBox textBox, double gradientValue)
+        private void AddGradientPoint(System.Windows.Forms.DataVisualization.Charting.Chart chart, TextBox textBox, double gradientValue, bool show)
         {
             try
             {
@@ -1940,7 +1994,8 @@ namespace RTLSpectrumAnalyzerGUI
                     }
                 }
 
-                if (checkBox8.Checked || (checkBox13.Checked && analyzingNearFarTransitions))
+                ////if (checkBox8.Checked || (checkBox13.Checked && analyzingNearFarTransitions))
+                if (show)
                     chart.Series["Series"].Points.Add(graphPoint);
 
                 if (chart == chart5)
@@ -2007,7 +2062,7 @@ namespace RTLSpectrumAnalyzerGUI
             }
         }
 
-        private void AddPointToTimeBasedGraph(System.Windows.Forms.DataVisualization.Charting.Chart strengthChart, System.Windows.Forms.DataVisualization.Charting.Chart gradientChart, float value)
+        private void AddPointToTimeBasedGraph(System.Windows.Forms.DataVisualization.Charting.Chart strengthChart, System.Windows.Forms.DataVisualization.Charting.Chart gradientChart, float value, bool show = true)
         {
             System.Windows.Forms.DataVisualization.Charting.DataPoint graphPoint = new System.Windows.Forms.DataVisualization.Charting.DataPoint(strengthChart.Series["Series"].Points.Count, value);
 
@@ -2055,7 +2110,8 @@ namespace RTLSpectrumAnalyzerGUI
                 }
             }
 
-            if (checkBox8.Checked || (checkBox13.Checked && analyzingNearFarTransitions))
+            ////if (checkBox8.Checked || (checkBox13.Checked && analyzingNearFarTransitions) || show)
+            if (show)
                 strengthChart.Series["Series"].Points.Add(graphPoint);
 
 
@@ -2141,11 +2197,11 @@ namespace RTLSpectrumAnalyzerGUI
                     gradient = strengthChart.Series["Series"].Points[strengthChart.Series["Series"].Points.Count - 1].YValues[0] - strengthChart.Series["Series"].Points[strengthChart.Series["Series"].Points.Count - 2].YValues[0];
                 }
 
-                AddGradientPoint(gradientChart, textBox12, avgGradient);
+                AddGradientPoint(gradientChart, textBox12, avgGradient, show);
             }
         }
 
-        private void GraphStrengthToTimeBasedGraph(BinData binData)
+        private void GraphStrengthToTimeBasedGraph(BinData binData, bool show)
         {
             if (binData != null)
             {
@@ -2167,14 +2223,14 @@ namespace RTLSpectrumAnalyzerGUI
             else
             {
                 if (recordingSeries1)
-                    AddPointToTimeBasedGraph(chart3, chart4, float.Parse(textBox7.Text));
+                    AddPointToTimeBasedGraph(chart3, chart4, float.Parse(textBox7.Text), show);
 
                 if (recordingSeries2)
-                    AddPointToTimeBasedGraph(chart3, chart4, float.Parse(textBox8.Text));
+                    AddPointToTimeBasedGraph(chart3, chart4, float.Parse(textBox8.Text), show);
             }
         }
 
-        private void GraphAverageStrength(BinData binData)
+        private void GraphAverageStrength(BinData binData, bool show)
         {
             if (binData != null)
             {
@@ -2216,7 +2272,7 @@ namespace RTLSpectrumAnalyzerGUI
                     AddPointToTimeBasedGraph(chart3, chart4, float.Parse(textBox7.Text));
 
                     if (userAnalysisForm.Visible)
-                        AddPointToTimeBasedGraph(userAnalysisForm.chart3, userAnalysisForm.chart4, float.Parse(textBox7.Text));
+                        AddPointToTimeBasedGraph(userAnalysisForm.chart3, userAnalysisForm.chart4, float.Parse(textBox7.Text), show);
                 }
 
                 if (recordingSeries2)
@@ -2226,7 +2282,7 @@ namespace RTLSpectrumAnalyzerGUI
                     AddPointToTimeBasedGraph(chart3, chart4, float.Parse(textBox8.Text));
 
                     if (userAnalysisForm.Visible)
-                        AddPointToTimeBasedGraph(userAnalysisForm.chart3, userAnalysisForm.chart4, float.Parse(textBox8.Text));
+                        AddPointToTimeBasedGraph(userAnalysisForm.chart3, userAnalysisForm.chart4, float.Parse(textBox8.Text), show);
                 }
             }
         }
@@ -2738,7 +2794,7 @@ namespace RTLSpectrumAnalyzerGUI
                                     ////GraphTotalMagnitude(totalMagnitude);
                                     ////GraphAvgMagnitude(avgMagnitude);
 
-                                    GraphAverageStrength(null);
+                                    GraphAverageStrength(null, checkBox8.Checked || (checkBox13.Checked && analyzingNearFarTransitions) || userAnalysisForm.Visible);
                                     ////GraphStrengthToTimeBasedGraph(null);
 
                                     if (checkBox8.Checked || (checkBox13.Checked && analyzingNearFarTransitions))
@@ -3083,11 +3139,15 @@ namespace RTLSpectrumAnalyzerGUI
                                     totalADCMagnitudeNear += avgMagnitude;
                                     double avgADCMagnitude = totalADCMagnitudeNear / series2BinData.GetAverageNumberOfFrames();
 
-                                    GraphData(series2BinData);
-                                    GraphDifferenceOrNearFarTransitionRatios(series1BinData, series2BinData);
+                                    ////if (userAnalysisForm.WindowState != FormWindowState.Maximized)
+                                    {
+                                        GraphData(series2BinData);
+                                        GraphDifferenceOrNearFarTransitionRatios(series1BinData, series2BinData);
+                                    }
 
 
-                                    GraphAverageStrength(null);
+                                    GraphAverageStrength(null, checkBox8.Checked || (checkBox13.Checked && analyzingNearFarTransitions) || userAnalysisForm.Visible);
+                                    ////GraphAverageStrength(null);
 
                                     if (checkBox8.Checked || (checkBox13.Checked && analyzingNearFarTransitions))
                                     {
@@ -3181,7 +3241,7 @@ namespace RTLSpectrumAnalyzerGUI
 
         private void ZoomGraphsToFrequency(long startFrequency, long endFrequency=-1)
         {
-            long frequency;
+            /*////long frequency;
 
             if (endFrequency>-1 && startFrequency != endFrequency)
             {
@@ -3189,6 +3249,7 @@ namespace RTLSpectrumAnalyzerGUI
             }
             else
                 frequency = startFrequency;
+                */
 
             if (transitionAnalysesMode)
             {
@@ -3211,24 +3272,33 @@ namespace RTLSpectrumAnalyzerGUI
             frequencyRange = new Utilities.FrequencyRange(graph2LowerFrequency, graph2UpperFrequency);
             graph2FrequencyRanges.Push(frequencyRange);
 
-            if (frequency - GRAPH_WIDTH_WHEN_ZOOMED / 2 < dataLowerFrequency)
-            {
-                graph1LowerFrequency = graph2LowerFrequency = dataLowerFrequency;
 
-                graph1UpperFrequency = graph2UpperFrequency = frequency + GRAPH_WIDTH_WHEN_ZOOMED / 2 + (frequency - dataLowerFrequency);
-            }
-            else
+            if (endFrequency == -1)
             {
-                if (frequency + 10000 > dataUpperFrequency)
+                if (startFrequency - GRAPH_WIDTH_WHEN_ZOOMED / 2 < dataLowerFrequency)
                 {
-                    graph1LowerFrequency = graph2LowerFrequency = frequency - GRAPH_WIDTH_WHEN_ZOOMED / 2 - (dataUpperFrequency - frequency);
-                    graph1UpperFrequency = graph2UpperFrequency = dataUpperFrequency;
+                    graph1LowerFrequency = graph2LowerFrequency = dataLowerFrequency;
+
+                    graph1UpperFrequency = graph2UpperFrequency = startFrequency + GRAPH_WIDTH_WHEN_ZOOMED / 2 + (startFrequency - dataLowerFrequency);
                 }
                 else
                 {
-                    graph1LowerFrequency = graph2LowerFrequency = frequency - GRAPH_WIDTH_WHEN_ZOOMED / 2;
-                    graph1UpperFrequency = graph2UpperFrequency = frequency + GRAPH_WIDTH_WHEN_ZOOMED / 2;
+                    if (startFrequency + 10000 > dataUpperFrequency)
+                    {
+                        graph1LowerFrequency = graph2LowerFrequency = startFrequency - GRAPH_WIDTH_WHEN_ZOOMED / 2 - (dataUpperFrequency - startFrequency);
+                        graph1UpperFrequency = graph2UpperFrequency = dataUpperFrequency;
+                    }
+                    else
+                    {
+                        graph1LowerFrequency = graph2LowerFrequency = startFrequency - GRAPH_WIDTH_WHEN_ZOOMED / 2;
+                        graph1UpperFrequency = graph2UpperFrequency = startFrequency + GRAPH_WIDTH_WHEN_ZOOMED / 2;
+                    }
                 }
+            }
+            else
+            {
+                graph1LowerFrequency = startFrequency;
+                graph1UpperFrequency = endFrequency;
             }
 
             /*////chart1.Series["Far Series"].Points.Clear();
@@ -3275,7 +3345,7 @@ namespace RTLSpectrumAnalyzerGUI
                 }
                 else
                     /////////transitionGradient = transitionGradientArray.GetTransitionGradientForFrequency(frequency, binSize / 10);
-                    transitionGradient = transitionGradientArray.GetTransitionGradientForFrequency(frequency, binSize * 100);
+                    transitionGradient = transitionGradientArray.GetTransitionGradientForFrequency(startFrequency, binSize * 100);
 
                 if (transitionGradient != null)
                     GraphTransitionData(transitionGradient);
@@ -4746,7 +4816,7 @@ namespace RTLSpectrumAnalyzerGUI
             checkBox13.Checked = checkBox8.Checked;
         }
 
-        private void AnalyzeFrequency(long userSelectedFrequencyForAnalysis)
+        private void AnalyzeFrequency(long lowerFrequency, long upperFrequency = -1)
         {
             if (series1BinData.binArray.Length > 0 && series2BinData.binArray.Length > 0 && !Double.IsNaN(series1BinData.binArray[0]) && !Double.IsNaN(series2BinData.binArray[0]))
             {
@@ -4759,7 +4829,14 @@ namespace RTLSpectrumAnalyzerGUI
 
                     ////userSelectedFrequencyForAnalysis = (long)(graph2UpperFrequency + graph2LowerFrequency) / 2;
 
-                    userAnalysisForm.textBox17.Text = Utilities.GetFrequencyString(userSelectedFrequencyForAnalysis);
+                    if (upperFrequency == -1)
+                    {
+                        userAnalysisForm.textBox17.Text = Utilities.GetFrequencyString(lowerFrequency);
+                    }
+                    else
+                    {
+                        userAnalysisForm.textBox17.Text = Utilities.GetFrequencyString(lowerFrequency) + " to " + Utilities.GetFrequencyString(upperFrequency);
+                    }
 
                     userAnalysisForm.textBox1.Text = (currentLeaderboardSignalBeingAnalyzedIndex + 1).ToString();
 
@@ -4768,13 +4845,20 @@ namespace RTLSpectrumAnalyzerGUI
                     button24.Enabled = true;
                     userAnalysisForm.button1.Enabled = button24.Enabled;
 
-                    
+                    ////if (showGraphs)
+                    ////checkBox8.Checked = true;
 
-                    checkBox8.Checked = true;
+                    /*////originalUserSettingShowGraphs = showGraphs;
+
+                    showGraphs = false;
+
+                    checkBox8.Checked = checkBox13.Checked = false;
+                    */
+
 
                     programState = ProgramState.ANALYZING_TRANSITIONS;
 
-                    ZoomToFrequency(userSelectedFrequencyForAnalysis);
+                    ZoomToFrequency(lowerFrequency, upperFrequency);
                 }
             }
             else
@@ -4805,16 +4889,24 @@ namespace RTLSpectrumAnalyzerGUI
         {
             currentLeaderboardSignalBeingAnalyzedIndex++;
 
-            if (currentLeaderboardSignalBeingAnalyzedIndex >= listBox4.Items.Count)
+            if (currentLeaderboardSignalBeingAnalyzedIndex >= listBox5.Items.Count)
                 currentLeaderboardSignalBeingAnalyzedIndex = 0;
 
-            userSelectedFrequencyForAnalysis = (long) leaderBoardSignals[currentLeaderboardSignalBeingAnalyzedIndex].frequency;
+            userSelectedFrequencyForAnalysis = (long) leaderBoardRanges[currentLeaderboardSignalBeingAnalyzedIndex].frequency;
 
-            AnalyzeFrequency(userSelectedFrequencyForAnalysis);
+            Utilities.FrequencyRange frequencyRange = Utilities.GetFrequencyRangeFromFrequency(userSelectedFrequencyForAnalysis);
+
+            AnalyzeFrequency((long) frequencyRange.lower, (long) frequencyRange.upper);
+
+            ////AnalyzeFrequency(userSelectedFrequencyForAnalysis);            
         }
 
         private void button25_Click(object sender, EventArgs e)
         {
+            originalUserSettingShowGraphs = showGraphs;
+            showGraphs = false;
+            checkBox8.Checked = checkBox13.Checked = false;
+
             bufferFramesArray.Flush(series1BinData, series2BinData, series1BinData);
 
             userAnalysisForm.AnalyzingCenterFrequency();
@@ -4856,6 +4948,10 @@ namespace RTLSpectrumAnalyzerGUI
 
         private void button26_Click(object sender, EventArgs e)
         {
+            originalUserSettingShowGraphs = showGraphs;
+            showGraphs = false;
+            checkBox8.Checked = checkBox13.Checked = false;
+
             bufferFramesArray.Flush(series1BinData, series2BinData, series1BinData);
 
             userAnalysisForm.AnalyzingLeaderboardFrequency();
@@ -4955,6 +5051,9 @@ namespace RTLSpectrumAnalyzerGUI
 
             leaderboardGraph.chart1.ChartAreas[0].AxisX.Maximum = series1BinData.binArray.Length - 1;
             leaderboardGraph.chart1.ChartAreas[0].AxisX2.Maximum = series1BinData.binArray.Length - 1;
+
+            leaderboardGraph.chart1.ChartAreas[0].AxisY.Minimum = Double.NaN;
+            leaderboardGraph.chart1.ChartAreas[0].AxisY2.Minimum = Double.NaN;
 
             leaderboardGraph.chart1.ChartAreas[0].AxisY.Maximum = Double.NaN;
             leaderboardGraph.chart1.ChartAreas[0].AxisY2.Maximum = Double.NaN;
@@ -5075,6 +5174,11 @@ namespace RTLSpectrumAnalyzerGUI
             leaderboardGraph.chart1.Titles[0].Text = "";
             leaderboardGraph.Show();
 
+        }
+
+        private void checkBox14_CheckedChanged(object sender, EventArgs e)
+        {
+            GraphAndListTransitionData();
         }
 
         public void ShowSaveDataDialogAndSaveData()

@@ -38,7 +38,7 @@ namespace RTLSpectrumAnalyzerGUI
 
         public const long FREQUENCY_SEGMENT_SIZE = 100000;
 
-        public readonly static double[] minStrengthForRankings = { 150, 110 };
+        public readonly static double[] minStrengthForRankings = { 110, 105 };
 
         public int currentBufferIndex = -1;
         public int startBufferIndex = 0;

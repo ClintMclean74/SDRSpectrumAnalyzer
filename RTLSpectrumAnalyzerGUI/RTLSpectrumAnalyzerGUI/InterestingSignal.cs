@@ -13,6 +13,13 @@ namespace RTLSpectrumAnalyzerGUI
         public double rating = 0;
         public double frequency = 0;
 
+        public double lowerFrequency = 0;
+        public double upperFrequency = 0;
+
+        public double rangeTotal = 0;
+        public double rangeTotalCount = 0;
+
+
         public double totalChange = 0;
         public double avgChange = 0;
 
@@ -29,13 +36,17 @@ namespace RTLSpectrumAnalyzerGUI
 
         List<Double> prevStrengths = new List<Double>();
 
-        public InterestingSignal(int index, double strength, double strengthDif, double frequency)
+        public InterestingSignal(int index, double strength, double strengthDif, double frequency, double lowerFrequency = -1, double upperFrequency = -1)
         {
             this.index = index;
             this.strength = strength;
             this.strengthDif = strengthDif;
 
             this.frequency = frequency;
+
+            this.lowerFrequency = lowerFrequency;
+
+            this.upperFrequency = upperFrequency;
         }
 
         public void LoadData(BinaryReader reader)
