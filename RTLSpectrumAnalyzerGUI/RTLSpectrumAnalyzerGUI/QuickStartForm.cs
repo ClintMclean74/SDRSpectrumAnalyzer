@@ -18,6 +18,9 @@ namespace RTLSpectrumAnalyzerGUI
         {
             mainForm.transitionAnalysesMode = checkBox2.Checked;
 
+            if (!checkBox2.Checked && !checkBox3.Checked)
+                mainForm.checkBox9.Checked = false;
+
             if (checkBox1.Checked)
                 mainForm.checkBox8.Checked = mainForm.checkBox13.Checked = mainForm.showGraphs = checkBox1.Checked;
             else
@@ -61,6 +64,18 @@ namespace RTLSpectrumAnalyzerGUI
         private void checkBox1_CheckedChanged(object sender, EventArgs e)
         {
 
+        }
+
+        private void checkBox3_CheckedChanged(object sender, EventArgs e)
+        {
+            if (checkBox3.Checked)
+                checkBox2.Checked = false;
+        }
+
+        private void checkBox2_CheckedChanged(object sender, EventArgs e)
+        {
+            if (checkBox2.Checked)
+                checkBox3.Checked = false;
         }
     }
 }

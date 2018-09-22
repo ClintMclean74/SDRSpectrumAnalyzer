@@ -1,2 +1,2 @@
-Move away from the detector's antenna and computer for more than 4 seconds
+Move away from the detector's antenna and computer for more than 8 seconds
 and return, then move the mouse or press a key to indicate that you're near.

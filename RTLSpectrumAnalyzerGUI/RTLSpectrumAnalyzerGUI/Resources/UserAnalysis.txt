@@ -1,9 +1,9 @@
 Here you can determine changes in signal strength based on how far you are from the antenna.
 
-You can do a transition analysis on the signals, moving away from the antenna and your computer for 4 or more seconds
+You can do a transition analysis on the signals, moving away from the antenna and your computer for 8 or more seconds
 and then returning, moving the mouse or pressing a key.
 
-A graph of the signal strength will be shown from 4 seconds before you get to your computer to 4 seconds after.
+A graph of the signal strength will be shown from 8 seconds before you get to your computer to 8 seconds after.
 
 You can also just record the signals, moving further and nearer to the antenna, noticing the change in signal strength
 in the strength and gradient graphs.
@@ -36,3 +36,5 @@ So an increasing gradient often indicates a reradiated or emitted signal, just d
 when you get nearer the antenna.
 
 An increasing transition analysis is also a strong indicator of a reradiated or emitted signal.
+
+Do this analysis for the frequency and the frequency range, using the selection buttons on the bottom left of the form.

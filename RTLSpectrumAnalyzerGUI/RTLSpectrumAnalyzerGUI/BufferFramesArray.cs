@@ -183,6 +183,11 @@ namespace RTLSpectrumAnalyzerGUI
             transitionBufferFrames = new BufferFrames(mainForm, this);
         }
 
+        public bool EvaluateWhetherReradiatedFrequency(long frequency)
+        {
+            return transitionBufferFrames.EvaluateWhetherReradiatedFrequency(frequency);
+        }
+
         public bool EvaluateWhetherReradiatedFrequencyRange()
         {
             /*////possibleReradiatedFrequencyRange = transitionBufferFrames.EvaluateWhetherReradiatedFrequencyRange();
@@ -190,7 +195,7 @@ namespace RTLSpectrumAnalyzerGUI
             return possibleReradiatedFrequencyRange;
             */
 
-            reradiatedRankingCategory = transitionBufferFrames.EvaluatereradiatedRankingCategory();
+            reradiatedRankingCategory = transitionBufferFrames.EvaluatereRadiatedRankingCategory();
 
             return true;
         }
@@ -319,6 +324,14 @@ namespace RTLSpectrumAnalyzerGUI
 
             return null;
         }
+        
+
+        public bool EvaluateWhetherReradiatedFrequency(long frequency)
+        {
+            BufferFramesObject bufferFramesObjectForFrequency = GetBufferFramesObjectForFrequency(frequency);
+
+            return bufferFramesObjectForFrequency.EvaluateWhetherReradiatedFrequency(frequency);
+        }
 
 
         public TransitionGradient GetTransitionsGradientForFrequency(long frequency)
@@ -326,6 +339,13 @@ namespace RTLSpectrumAnalyzerGUI
             BufferFramesObject bufferFramesObjectForFrequency = GetBufferFramesObjectForFrequency(frequency);
 
             return bufferFramesObjectForFrequency.transitionBufferFrames.GetTransitionsGradientForFrequency(frequency);
+        }
+
+        public TransitionGradient GetRangeTransitionsGradientForFrequency(long frequency)
+        {
+            BufferFramesObject bufferFramesObjectForFrequency = GetBufferFramesObjectForFrequency(frequency);
+
+            return bufferFramesObjectForFrequency.transitionBufferFrames.GetTransitionsGradient();
         }
 
         public TransitionGradientArray GetStrongestTransitionsFrequencyGradientArray(bool frequencyRanges)

@@ -19,17 +19,17 @@ namespace RTLSpectrumAnalyzerGUI
         public const uint TRANSITION_LENGTH = 16 * 1000;
         ////public const uint TRANSITION_LENGTH = 4 * 1000;
 
-        public const long TRANSITIONS_ANALYSES_MODE_TIME_DELAY_BEFORE_ZOOMING = 3 * 1000;
+        public const long TRANSITIONS_ANALYSES_MODE_TIME_DELAY_BEFORE_ZOOMING = 10 * 1000;
 
         #if (SDR_DEBUG)
             public const long BUFFER_TIME_LENGTH = 30 * 1000;        
             public const long TIME_DELAY_BEFORE_ZOOMING_BEFORE_ANALYZING_TRANSITIONS = 10 * 1000;
-            public const long TIME_DELAY_BEFORE_ZOOMING = 3 * 1000;
-        #else
+            public const long TIME_DELAY_BEFORE_ZOOMING = 3 * 1000;            
+#else
             public const long BUFFER_TIME_LENGTH = 60 * 1000;
             public const long TIME_DELAY_BEFORE_ZOOMING_BEFORE_ANALYZING_TRANSITIONS = 60 * 1000;
             public const long TIME_DELAY_BEFORE_ZOOMING = 10 * 1000;
-        #endif
+#endif
 
         public const long ZOOMED_IN_TRANSITION_FRAMES_EXIT = 4;
         public const long ZOOMED_IN_TRANSITION_FRAMES_STAGE1 = 1;
@@ -38,7 +38,9 @@ namespace RTLSpectrumAnalyzerGUI
 
         public const long FREQUENCY_SEGMENT_SIZE = 100000;
 
-        public readonly static double[] minStrengthForRankings = { 110, 105 };
+        public readonly static double[] minStrengthForRankings = { 120, 110, 105, 100 };
+
+        public const long MIN_TRANSITION_SUCCESS_PERCENTAGE = 70;
 
         public int currentBufferIndex = -1;
         public int startBufferIndex = 0;
@@ -249,7 +251,8 @@ namespace RTLSpectrumAnalyzerGUI
                 {
                     totalStrengthValue = 0;
 
-                    for (long j = startIndex; j < endIndex; j++)
+                    ////for (long j = startIndex; j < endIndex; j++)
+                    for (long j = 0; j < 1024; j++)
                     {
                         totalStrengthValue += currentTransitionBufferFramesArray[i].bufferArray[j];                        
                     }
@@ -286,7 +289,8 @@ namespace RTLSpectrumAnalyzerGUI
 
                     totalStrengthValue = 0;
 
-                    for (long j = startIndex; j < endIndex; j++)
+                    ////for (long j = startIndex; j < endIndex; j++)
+                    for (long j = 0; j < 1024; j++)
                     {
                         totalStrengthValue += bufferFramesArray[i].bufferArray[j];
                     }
@@ -524,11 +528,22 @@ namespace RTLSpectrumAnalyzerGUI
 
                 double gradientStrength = gradient.CalculateTransitionGradient();
 
-                long index = bufferFramesArray[0].bufferArray.Length/2;
+                long index = bufferFramesArray[0].bufferArray.Length / 2;
+
+                long frequency = Utilities.GetFrequencyFromIndex((long)(index), parent.lowerFrequency, mainForm.binSize);
+
+                
+                BufferFramesObject zoomedOutBufferObject = mainForm.bufferFramesArray.GetBufferFramesObject(0);
+
+                Utilities.FrequencyRange frequencyRange = Utilities.GetIndicesForFrequencyRange(frequency, frequency, zoomedOutBufferObject.lowerFrequency, zoomedOutBufferObject.binSize);
+
 
                 long width = bufferFramesArray[0].bufferArray.Length / 2;
 
-                transitionGradient = new TransitionGradient(Utilities.GetFrequencyFromIndex((long)(index), parent.lowerFrequency, mainForm.binSize), index, gradientStrength, this.transitions,gradient,width, Utilities.GetFrequencyFromIndex((long)(index-width), parent.lowerFrequency, mainForm.binSize), Utilities.GetFrequencyFromIndex((long)(index+width), parent.lowerFrequency, mainForm.binSize));
+
+                ////transitionGradient = new TransitionGradient(frequency, (long) frequencyRange.lower, gradientStrength, this.transitions,gradient,width, Utilities.GetFrequencyFromIndex((long)(index-width), parent.lowerFrequency, mainForm.binSize), Utilities.GetFrequencyFromIndex((long)(index+width), parent.lowerFrequency, mainForm.binSize));
+
+                transitionGradient = new TransitionGradient(frequency, index, gradientStrength, this.transitions, gradient, width, Utilities.GetFrequencyFromIndex((long)(index - width), parent.lowerFrequency, mainForm.binSize), Utilities.GetFrequencyFromIndex((long)(index + width), parent.lowerFrequency, mainForm.binSize));
 
                 return transitionGradient;
             }
@@ -648,7 +663,7 @@ namespace RTLSpectrumAnalyzerGUI
             return average;
         }
 
-        public int EvaluatereradiatedRankingCategory()
+        public int EvaluatereRadiatedRankingCategory()
         {
             if (gradients.Count > 0)
             {
@@ -677,6 +692,25 @@ namespace RTLSpectrumAnalyzerGUI
             }
 
             return 1;
+        }
+
+        public bool EvaluateWhetherReradiatedFrequency(long frequency)
+        {
+            Utilities.FrequencyRange frequencyRange = Utilities.GetIndicesForFrequencyRange(frequency, frequency, parent.lowerFrequency, parent.binSize);
+
+            uint successCount = 0;
+            for (int i = 0; i < gradients.Count; i++)
+            {
+                if (gradients[i].gradientArray[(long) frequencyRange.lower].strength >= BufferFrames.minStrengthForRankings[0])
+                {
+                    successCount++;
+                }
+            }
+
+            if (((float)successCount / gradients.Count * 100) >= BufferFrames.MIN_TRANSITION_SUCCESS_PERCENTAGE)
+                return true;
+
+            return false;
         }
 
         public bool EvaluateWhetherReradiatedFrequencyRange()

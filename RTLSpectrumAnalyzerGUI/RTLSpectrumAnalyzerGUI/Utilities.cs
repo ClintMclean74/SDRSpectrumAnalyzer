@@ -107,12 +107,16 @@ namespace RTLSpectrumAnalyzerGUI
             return false;
         }
 
-        public static int FrequencyInSignals(long frequency, long strongestRange, List<InterestingSignal> signals, bool useRange = false)
+        public static int FrequencyInSignals(long frequency, long strongestRange, List<InterestingSignal> signals, bool useRange = false, double tolerance = 10000)
         {
             int closestIndex = -1;
             double minDif = Double.NaN, dif;
 
             Utilities.FrequencyRange frequencyRange = Utilities.GetFrequencyRangeFromFrequency(frequency);
+
+            if (strongestRange == -1)
+
+                strongestRange = signals.Count;
 
             for (int i = 0; i < signals.Count && i < strongestRange; i++)
             {
@@ -120,10 +124,13 @@ namespace RTLSpectrumAnalyzerGUI
                 {
                     dif = Math.Abs(signals[i].frequency - frequency);
 
-                    if ((dif < minDif || Double.IsNaN(minDif)) && signals[i].frequency >= frequencyRange.lower && signals[i].frequency <= frequencyRange.upper)
+                    if (dif < tolerance)
                     {
-                        minDif = dif;
-                        closestIndex = i;
+                        if ((dif < minDif || Double.IsNaN(minDif)) && signals[i].frequency >= frequencyRange.lower && signals[i].frequency <= frequencyRange.upper)
+                        {
+                            minDif = dif;
+                            closestIndex = i;
+                        }
                     }
                 }
                 else

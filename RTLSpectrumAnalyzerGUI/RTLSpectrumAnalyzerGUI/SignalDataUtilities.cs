@@ -230,12 +230,12 @@ namespace RTLSpectrumAnalyzerGUI
 
             int i;
 
-            /*/////////for (i = 0; i < data.Length; i++)
+            for (i = 0; i < data.Length; i++)
             {
                 data[i] = data[i] * data[i];                
-            }*/
+            }
 
-            ////gradientValues = Normalize(data, 1000000);
+            ////////gradientValues = Normalize(data, 1000000);
 
 
             /////////double[] gradientValues = (double []) data.Clone();
@@ -253,7 +253,6 @@ namespace RTLSpectrumAnalyzerGUI
 
             for (i = 0; i < firstLength; i++)
             {
-
                 total1 += data[i];
             }
 

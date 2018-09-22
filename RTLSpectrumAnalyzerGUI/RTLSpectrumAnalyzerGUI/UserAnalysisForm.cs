@@ -28,13 +28,7 @@ namespace RTLSpectrumAnalyzerGUI
         }
 
         private void UserAnalysisForm_FormClosing(object sender, FormClosingEventArgs e)
-        {
-            mainForm.showGraphs = mainForm.originalUserSettingShowGraphs;
-
-            if (mainForm.showGraphs)
-                mainForm.checkBox8.Checked = true;
-
-
+        {            
             mainForm.ResumeAutomatedAnalysis();
 
             this.Hide();
@@ -110,7 +104,17 @@ namespace RTLSpectrumAnalyzerGUI
             {
                 UserInfoDialog dialog = new UserInfoDialog((int)UserInfoDialogs.TransitionDialog);
 
-                string userTransitionAnalysisText = Utilities.GetResourceText("RTLSpectrumAnalyzerGUI.Resources.UserTransitionAnalysis.txt");
+                ////string userTransitionAnalysisText = Utilities.GetResourceText("RTLSpectrumAnalyzerGUI.Resources.UserTransitionAnalysis.txt");
+
+                string userTransitionAnalysisText = "Move away from the detector's antenna and computer for more than ";
+
+                userTransitionAnalysisText += (BufferFrames.TRANSITION_LENGTH / 2000);
+
+                userTransitionAnalysisText += " seconds and return, \r\nthen move the mouse or press a key to indicate that you're near.";
+
+                userTransitionAnalysisText += "\r\n\r\nRemember to do this for the frequency and the frequency range, using the selection";
+                userTransitionAnalysisText += "\r\nbuttons on the bottom left of the form.";
+
 
                 dialog.SetText(userTransitionAnalysisText);
 
@@ -237,5 +241,23 @@ namespace RTLSpectrumAnalyzerGUI
         {
             Utilities.AutoAdjustChartZoom(chart8, e, "Series2");
         }
+
+        private void radioButton1_CheckedChanged(object sender, EventArgs e)
+        {
+            if (radioButton1.Checked)
+            {                
+                mainForm.ZoomGraphsToFrequency(mainForm.userSelectedFrequencyForAnalysis);
+            }
+        }
+
+        private void radioButton2_CheckedChanged(object sender, EventArgs e)
+        {
+            if (radioButton2.Checked)
+            {                
+                Utilities.FrequencyRange frequencyRange = Utilities.GetFrequencyRangeFromFrequency(mainForm.userSelectedFrequencyForAnalysis);
+
+                mainForm.ZoomGraphsToFrequency((long)frequencyRange.lower, (long)frequencyRange.upper);
+            }
+        }        
     }
 }
