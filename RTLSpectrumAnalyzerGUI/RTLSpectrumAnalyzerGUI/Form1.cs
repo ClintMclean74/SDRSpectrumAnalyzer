@@ -224,7 +224,7 @@ namespace RTLSpectrumAnalyzerGUI
         public const long REQUIRED_TRANSITIONS_BEFORE_USER_ANALYSIS = 4;
         public const uint MAX_TRANSITION_SCANS = 4;
 #else
-        public const long REQUIRED_FRAMES_BEFORE_ANALYZING_TRANSITIONS = 1000;
+        public const long REQUIRED_FRAMES_BEFORE_ANALYZING_TRANSITIONS = 100;
         public const long REQUIRED_ZOOMED_FRAMES_BEFORE_ZOOMING_OUT = 1000;
         public const long REQUIRED_FRAMES_BEFORE_USER_ANALYSIS = 10000;
         public const long REQUIRED_TRANSITIONS_BEFORE_USER_ANALYSIS = 4;        
