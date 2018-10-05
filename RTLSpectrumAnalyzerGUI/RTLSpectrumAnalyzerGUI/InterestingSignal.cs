@@ -49,18 +49,31 @@ namespace RTLSpectrumAnalyzerGUI
             this.upperFrequency = upperFrequency;
         }
 
-        public void LoadData(BinaryReader reader)
+        public void LoadData(BinaryReader reader, bool accrue = false)
         {
-            this.frequency = reader.ReadUInt32();
-            this.index = reader.ReadInt32();
+            ////this.frequency = reader.ReadUInt32();
+            ////this.index = reader.ReadInt32();
 
-            this.strength = reader.ReadDouble();
-            this.strengthDif = reader.ReadDouble();
-            this.rating = reader.ReadDouble();
-            this.totalChange = reader.ReadDouble();
-            this.avgChange = reader.ReadDouble();
+            if (accrue)
+            {
+                this.strength += reader.ReadDouble();
+                this.strengthDif += reader.ReadDouble();
+                this.rating += reader.ReadDouble();
+                this.totalChange += reader.ReadDouble();
+                this.avgChange += reader.ReadDouble();
 
-            this.avgCount = reader.ReadInt32();
+                this.avgCount += reader.ReadInt32();
+            }
+            else
+            {
+                this.strength = reader.ReadDouble();
+                this.strengthDif = reader.ReadDouble();
+                this.rating = reader.ReadDouble();
+                this.totalChange = reader.ReadDouble();
+                this.avgChange = reader.ReadDouble();
+
+                this.avgCount = reader.ReadInt32();
+            }
 
             this.maxStrength = reader.ReadDouble();
             this.minStrength = reader.ReadDouble();

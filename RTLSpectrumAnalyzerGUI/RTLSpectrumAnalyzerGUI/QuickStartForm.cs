@@ -30,7 +30,7 @@ namespace RTLSpectrumAnalyzerGUI
             }
 
             if (checkBox10.Checked)
-                mainForm.LoadData("session.rtl");                
+                mainForm.LoadData(Form1.SESSION_PATH + Form1.SESSION_FILE_NAME);                
             else
             {
                 mainForm.textBox1.Text = textBox1.Text;

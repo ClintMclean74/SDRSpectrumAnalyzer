@@ -77,19 +77,32 @@ namespace RTLSpectrumAnalyzerGUI
             StoreAndClearData();
         }
 
-        public void AnalyzingLeaderboardFrequency()
+        public bool AnalyzingLeaderboardFrequency()
         {
-            mainForm.ShowUserAnalysisDialog();
+            if (mainForm.reradiatedFrequencies.Count > 0)
+            {
+                mainForm.ShowUserAnalysisDialog();
 
-            label1.Visible = true;
+                label1.Visible = true;
 
-            textBox1.Visible = true;
+                textBox1.Visible = true;
 
-            button3.Visible = true;
+                button3.Visible = true;
 
-            button2.Visible = true;
+                button2.Visible = true;
 
-            StoreAndClearData();
+                StoreAndClearData();
+
+                return true;
+            }
+            else
+            {
+                ////MessageBox.Show("The code hasn't detected any reradiated frequencies yet.");
+
+                ////mainForm.ResumeAutomatedAnalysis();
+
+                return false;
+            }
         }
 
         private void button18_Click(object sender, EventArgs e)

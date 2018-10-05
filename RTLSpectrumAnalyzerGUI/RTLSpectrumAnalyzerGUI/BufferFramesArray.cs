@@ -216,16 +216,17 @@ namespace RTLSpectrumAnalyzerGUI
             transitionBufferFrames.SaveData(writer);            
         }
 
-        public void LoadData(BinaryReader reader)
+        public void LoadData(BinaryReader reader, bool accrue = false)
         {
-            lowerFrequency = reader.ReadUInt32();
+            /*////lowerFrequency = reader.ReadUInt32();
             upperFrequency = reader.ReadUInt32();
             binSize = reader.ReadDouble();
+            */
 
             try
             {
-                bufferFrames.LoadData(reader);
-                transitionBufferFrames.LoadData(reader);
+                bufferFrames.LoadData(reader, accrue);
+                transitionBufferFrames.LoadData(reader, accrue);
             }
             catch(Exception  ex)
             {
@@ -263,17 +264,52 @@ namespace RTLSpectrumAnalyzerGUI
             }
         }
 
-        public void LoadData(BinaryReader reader, Form1 mainForm)
+        public void LoadData(BinaryReader reader, Form1 mainForm, bool accrue = false)
         {
             long bufferFramesObjectsLength = reader.ReadUInt32();
 
-            for (int i = 0; i < bufferFramesObjectsLength; i++)
+            long lowerFrequency;
+            long upperFrequency;
+            double binSize;
+
+            if (accrue)
             {
-                bufferFramesObjects.Add(new BufferFramesObject(mainForm, 0, 0, 0));
+                BufferFramesObject bufferFramesObject;
 
-                bufferFramesObjects[bufferFramesObjects.Count-1].LoadData(reader);
+                for (int i = 0; i < bufferFramesObjectsLength; i++)
+                {
+                    lowerFrequency = reader.ReadUInt32();
+                    upperFrequency = reader.ReadUInt32();
+                    binSize = reader.ReadDouble();
 
-                bufferFramesObjects[bufferFramesObjects.Count - 1].EvaluateWhetherReradiatedFrequencyRange();
+                    bufferFramesObject = GetBufferFramesObject(lowerFrequency, upperFrequency);
+
+                    if (bufferFramesObject == null)
+                    {
+                        bufferFramesObjects.Add(new BufferFramesObject(mainForm, lowerFrequency, upperFrequency, binSize));
+
+                        bufferFramesObject = bufferFramesObjects[bufferFramesObjects.Count - 1];
+                    }
+
+                    bufferFramesObject.LoadData(reader, accrue);
+
+                    bufferFramesObject.EvaluateWhetherReradiatedFrequencyRange();
+                }
+            }
+            else
+            {
+                for (int i = 0; i < bufferFramesObjectsLength; i++)
+                {
+                    lowerFrequency = reader.ReadUInt32();
+                    upperFrequency = reader.ReadUInt32();
+                    binSize = reader.ReadDouble();
+
+                    bufferFramesObjects.Add(new BufferFramesObject(mainForm, lowerFrequency, upperFrequency, binSize));
+
+                    bufferFramesObjects[bufferFramesObjects.Count - 1].LoadData(reader);
+
+                    bufferFramesObjects[bufferFramesObjects.Count - 1].EvaluateWhetherReradiatedFrequencyRange();
+                }
             }
         }
 

@@ -132,50 +132,112 @@ namespace RTLSpectrumAnalyzerGUI
             }
         }
 
-        public void LoadData(BinaryReader reader)
+        public void LoadData(BinaryReader reader, bool accrue = false)
         {
-            transitions = reader.ReadUInt32();
-
-            long bufferFramesArrayLength = reader.ReadUInt32();            
-
-            if (bufferFramesArrayLength>0)
+            if (!accrue)
             {
-                long bufferFramesLength = reader.ReadUInt32();
+                transitions = reader.ReadUInt32();
 
-                for (int i = 0; i < bufferFramesArrayLength; i++)
+                long bufferFramesArrayLength = reader.ReadUInt32();
+
+                if (bufferFramesArrayLength > 0)
                 {
-                    bufferFramesArray.Add(new BufferFrame(bufferFramesLength, BinDataMode.Indeterminate));
-                    bufferFramesArray[bufferFramesArray.Count - 1].LoadData(reader);
+                    long bufferFramesLength = reader.ReadUInt32();
+
+                    for (int i = 0; i < bufferFramesArrayLength; i++)
+                    {
+                        bufferFramesArray.Add(new BufferFrame(bufferFramesLength, BinDataMode.Indeterminate));
+                        bufferFramesArray[bufferFramesArray.Count - 1].LoadData(reader);
+                    }
+
+                    currentBufferIndex = bufferFramesArray.Count - 1;
+                    startBufferIndex = 0;
                 }
 
-                currentBufferIndex = bufferFramesArray.Count - 1;
-                startBufferIndex = 0;
-            }
 
+                long currentBufferFramesArrayLength = reader.ReadUInt32();
 
-            long currentBufferFramesArrayLength = reader.ReadUInt32();
-
-            if (currentBufferFramesArrayLength > 0)
-            {
-                long currentBufferFramesLength = reader.ReadUInt32();
-
-                for (int i = 0; i < currentBufferFramesArrayLength; i++)
-                {                    
-                    currentTransitionBufferFramesArray.Add(new BufferFrame(currentBufferFramesLength, BinDataMode.Indeterminate));
-                    currentTransitionBufferFramesArray[currentTransitionBufferFramesArray.Count - 1].LoadData(reader);
-                }               
-            }
-
-            long gradientArrayLength = reader.ReadUInt32();
-
-            if (gradientArrayLength > 0)
-            {
-                long gradientsLength = reader.ReadUInt32();
-
-                for (int i = 0; i < gradientArrayLength; i++)
+                if (currentBufferFramesArrayLength > 0)
                 {
-                    gradients.Add(new GradientArray(gradientsLength));
-                    gradients[gradients.Count - 1].LoadData(reader);
+                    long currentBufferFramesLength = reader.ReadUInt32();
+
+                    for (int i = 0; i < currentBufferFramesArrayLength; i++)
+                    {
+                        currentTransitionBufferFramesArray.Add(new BufferFrame(currentBufferFramesLength, BinDataMode.Indeterminate));
+                        currentTransitionBufferFramesArray[currentTransitionBufferFramesArray.Count - 1].LoadData(reader);
+                    }
+                }
+
+                long gradientArrayLength = reader.ReadUInt32();
+
+                if (gradientArrayLength > 0)
+                {
+                    long gradientsLength = reader.ReadUInt32();
+
+                    for (int i = 0; i < gradientArrayLength; i++)
+                    {
+                        gradients.Add(new GradientArray(gradientsLength));
+                        gradients[gradients.Count - 1].LoadData(reader);
+                    }
+                }
+            }
+            else
+            {
+                uint newTransitions = reader.ReadUInt32();
+
+                long bufferFramesArrayLength = reader.ReadUInt32();
+
+                if (bufferFramesArrayLength > 0)
+                {
+                    long bufferFramesLength = reader.ReadUInt32();
+
+                    BufferFrame bufferFrame;
+
+                    for (int i = 0; i < bufferFramesArrayLength; i++)
+                    {
+                        ////bufferFramesArray.Add(new BufferFrame(bufferFramesLength, BinDataMode.Indeterminate));
+                        ////bufferFramesArray[bufferFramesArray.Count - 1].LoadData(reader);
+
+                        bufferFrame = new BufferFrame(bufferFramesLength, BinDataMode.Indeterminate);
+
+                        bufferFrame.LoadData(reader);
+
+                        AddTransitionBufferFrame(bufferFrame, bufferFrame.transitionTime, i);
+                    }
+
+                    currentBufferIndex = bufferFramesArray.Count - 1;
+                    startBufferIndex = 0;
+                }
+
+                transitions += newTransitions;
+
+
+                currentTransitionBufferFramesArray.Clear();
+
+                long currentBufferFramesArrayLength = reader.ReadUInt32();
+
+                if (currentBufferFramesArrayLength > 0)
+                {
+                    long currentBufferFramesLength = reader.ReadUInt32();
+
+                    for (int i = 0; i < currentBufferFramesArrayLength; i++)
+                    {
+                        currentTransitionBufferFramesArray.Add(new BufferFrame(currentBufferFramesLength, BinDataMode.Indeterminate));
+                        currentTransitionBufferFramesArray[currentTransitionBufferFramesArray.Count - 1].LoadData(reader);
+                    }
+                }
+
+                long gradientArrayLength = reader.ReadUInt32();
+
+                if (gradientArrayLength > 0)
+                {
+                    long gradientsLength = reader.ReadUInt32();
+
+                    for (int i = 0; i < gradientArrayLength; i++)
+                    {
+                        gradients.Add(new GradientArray(gradientsLength));
+                        gradients[gradients.Count - 1].LoadData(reader);
+                    }
                 }
             }
         }
@@ -668,6 +730,7 @@ namespace RTLSpectrumAnalyzerGUI
             if (gradients.Count > 0)
             {
                 int gradientCount;
+                double total;
 
                 for (int j = minStrengthForRankings.Length-1; j >=0; j--)
                 {
@@ -675,15 +738,20 @@ namespace RTLSpectrumAnalyzerGUI
                     {
                         gradientCount = 0;
 
+                        total = 0;
+
                         for (int k = 0; k < gradients[i].gradientArray.Length; k++)
                         {
-                            if (gradients[i].gradientArray[k].strength < minStrengthForRankings[j])
+                            /*////if (gradients[i].gradientArray[k].strength < minStrengthForRankings[j])
                             {
                                 gradientCount++;
-                            }
+                            }*/
+
+                            total += gradients[i].gradientArray[k].strength;
                         }
 
-                        if (gradientCount == gradients[0].gradientArray.Length)
+                        ////if (gradientCount == gradients[0].gradientArray.Length)
+                        if (total/ gradients[i].gradientArray.Length < minStrengthForRankings[j])
                         {
                             return j;        
                         }
@@ -887,6 +955,8 @@ namespace RTLSpectrumAnalyzerGUI
 
         public void AddTransitionBufferFrame(BufferFrame bufferFrame, long transitionTime, long index)
         {
+            bufferFrame.transitionTime = transitionTime;
+
             if (bufferFrame.mode == BinDataMode.Indeterminate || bufferFrame.mode == BinDataMode.NotUsed)
                 return;
 

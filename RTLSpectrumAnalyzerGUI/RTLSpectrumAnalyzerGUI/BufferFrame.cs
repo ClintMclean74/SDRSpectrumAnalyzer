@@ -6,6 +6,8 @@ namespace RTLSpectrumAnalyzerGUI
     public class BufferFrame
     {
         public long time;
+        public long transitionTime;
+        
         public float[] bufferArray;
 
         public BinDataMode mode = BinDataMode.Indeterminate;
@@ -24,6 +26,10 @@ namespace RTLSpectrumAnalyzerGUI
             writer.Write((UInt32)stackedFrames);
             writer.Write((UInt32)time);
 
+            writer.Write((UInt32)transitionTime);
+
+            writer.Write((int)mode);            
+
             writer.Write((UInt32)bufferArray.Length);
 
             for (int j = 0; j < bufferArray.Length; j++)
@@ -36,6 +42,10 @@ namespace RTLSpectrumAnalyzerGUI
         {
             stackedFrames = reader.ReadUInt32();
             time = reader.ReadUInt32();
+
+            transitionTime = reader.ReadUInt32();
+
+            mode = (BinDataMode) reader.ReadUInt32();            
 
             uint length = reader.ReadUInt32();
 
@@ -57,6 +67,8 @@ namespace RTLSpectrumAnalyzerGUI
             newBufferFrame.stackedFrames = stackedFrames;
 
             newBufferFrame.time = time;
+
+            newBufferFrame.transitionTime = transitionTime;            
 
             return newBufferFrame;
         }

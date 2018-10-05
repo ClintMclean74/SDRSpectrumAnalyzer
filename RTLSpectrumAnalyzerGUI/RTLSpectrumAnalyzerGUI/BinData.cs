@@ -66,30 +66,57 @@ namespace RTLSpectrumAnalyzerGUI
             }
         }
 
-        public void LoadData(BinaryReader reader)
+        public void LoadData(BinaryReader reader, bool accrue = false)
         {
             long length = reader.ReadUInt32();
 
             double value;
 
-            for (int i = 0; i < this.totalBinArray.Length; i++)
+            if (accrue)
             {
-                try
+                for (int i = 0; i < this.totalBinArray.Length; i++)
                 {
-                    value = reader.ReadSingle();
-                }
-                catch (Exception ex)
-                {
-                    value = 0;
-                }
+                    try
+                    {
+                        value = reader.ReadSingle();
+                    }
+                    catch (Exception ex)
+                    {
+                        value = 0;
+                    }
 
-                totalBinArray[i] = (float)value;                
+                    totalBinArray[i] += (float)value;
+                }
             }
-
-            for (int i = 0; i < this.totalBinArray.Length; i++)
+            else
             {
-                totalBinArrayNumberOfFrames[i] = reader.ReadSingle();
+                for (int i = 0; i < this.totalBinArray.Length; i++)
+               {
+                    try
+                    {
+                        value = reader.ReadSingle();
+                    }
+                    catch (Exception ex)
+                    {
+                        value = 0;
+                    }
+
+                    totalBinArray[i] = (float)value;
+                }
             }
+                
+            if (accrue)
+            {
+                for (int i = 0; i < this.totalBinArray.Length; i++)
+                {
+                    totalBinArrayNumberOfFrames[i] += reader.ReadSingle();
+                }
+            }
+            else
+                for (int i = 0; i < this.totalBinArray.Length; i++)
+                {
+                    totalBinArrayNumberOfFrames[i] = reader.ReadSingle();
+                }
         }
 
         public void CalculateAvgBinData()
