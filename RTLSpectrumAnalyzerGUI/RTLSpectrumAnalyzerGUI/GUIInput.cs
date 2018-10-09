@@ -124,7 +124,7 @@ namespace RTLSpectrumAnalyzerGUI
         
         private IntPtr MouseHookDelegate(Int32 Code, IntPtr wParam, IntPtr lParam)
         {
-            GUIInput.lastInputTime = Environment.TickCount;
+            GUIInput.lastInputTime = (Environment.TickCount & int.MaxValue);
 
             Notifications.currentNotificationTimeIndex = 0;
 
@@ -201,7 +201,7 @@ namespace RTLSpectrumAnalyzerGUI
 
         private IntPtr KeyboardHookDelegate(Int32 Code, IntPtr wParam, IntPtr lParam)
         {
-            GUIInput.lastInputTime = Environment.TickCount;
+            GUIInput.lastInputTime = (Environment.TickCount & int.MaxValue);
 
             Notifications.currentNotificationTimeIndex = 0;
 

@@ -55,7 +55,7 @@ namespace RTLSpectrumAnalyzerGUI
 
         public int AddCommand(string name)
         {
-            Command command = new Command(name, Environment.TickCount);
+            Command command = new Command(name, (Environment.TickCount & int.MaxValue));
             this.AddCommand(command);
 
             return commandArray.Count;

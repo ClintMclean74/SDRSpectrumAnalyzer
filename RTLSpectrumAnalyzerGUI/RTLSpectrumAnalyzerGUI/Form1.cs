@@ -341,7 +341,7 @@ namespace RTLSpectrumAnalyzerGUI
             {
                 Command command = commandBuffer.GetMostRecentCommand();
 
-                if (command == null || command.name != "InitializeZoomToFrequencyThread" || Environment.TickCount - command.time > 20000)
+                if (command == null || command.name != "InitializeZoomToFrequencyThread" || (Environment.TickCount & int.MaxValue) - command.time > 20000)
                 {
                     commandBuffer.AddCommand("InitializeZoomToFrequencyThread");
 
@@ -1320,7 +1320,7 @@ namespace RTLSpectrumAnalyzerGUI
 
             averageTotalFramesStrength = 0;
 
-            long currentTime = Environment.TickCount;
+            long currentTime = (Environment.TickCount & int.MaxValue);
 
             long lowerIndex;
             long upperIndex;
@@ -1371,7 +1371,7 @@ namespace RTLSpectrumAnalyzerGUI
 
                     /*////if (checkBox11.Checked && !analyzingNearFarTransitions && series1BinData.GetAverageNumberOfFrames() >= REQUIRED_FRAMES_BEFORE_ANALYZING_TRANSITIONS && series2BinData.GetAverageNumberOfFrames() >= REQUIRED_FRAMES_BEFORE_ANALYZING_TRANSITIONS)
                     {
-                        if ((recordingSeries1 && Environment.TickCount - recordingSeries1Start > BufferFrames.TIME_DELAY_BEFORE_ZOOMING || (recordingSeries2 && Environment.TickCount - recordingSeries2Start > BufferFrames.TIME_DELAY_BEFORE_ZOOMING)))
+                        if ((recordingSeries1 && (Environment.TickCount & int.MaxValue) - recordingSeries1Start > BufferFrames.TIME_DELAY_BEFORE_ZOOMING || (recordingSeries2 && (Environment.TickCount & int.MaxValue) - recordingSeries2Start > BufferFrames.TIME_DELAY_BEFORE_ZOOMING)))
                         {
                             InitializeZoomToFrequencyThread();
                         }
@@ -1403,8 +1403,10 @@ namespace RTLSpectrumAnalyzerGUI
 
                     automatedZooming = true;
 
-                    ////if ((transitionAnalysesMode && (zoomedOutBufferObject == currentBufferFramesObject)) || (recordingSeries1 && Environment.TickCount - recordingSeries1Start > delay || (recordingSeries2 && Environment.TickCount - recordingSeries2Start > delay)))
-                    if (recordingSeries1 && recordingSeries1Start > -1 && Environment.TickCount - recordingSeries1Start > delay || (recordingSeries2 && recordingSeries2Start > -1 && Environment.TickCount - recordingSeries2Start > delay))
+                    int positiveResult = (Environment.TickCount & int.MaxValue) & int.MaxValue;
+
+                    ////if ((transitionAnalysesMode && (zoomedOutBufferObject == currentBufferFramesObject)) || (recordingSeries1 && (Environment.TickCount & int.MaxValue) - recordingSeries1Start > delay || (recordingSeries2 && (Environment.TickCount & int.MaxValue) - recordingSeries2Start > delay)))
+                    if (recordingSeries1 && recordingSeries1Start > -1 && (Environment.TickCount & int.MaxValue) - recordingSeries1Start > delay || (recordingSeries2 && recordingSeries2Start > -1 && (Environment.TickCount & int.MaxValue) - recordingSeries2Start > delay))
                     {
                         InitializeZoomToFrequencyThread();
                     }
@@ -2892,7 +2894,7 @@ namespace RTLSpectrumAnalyzerGUI
                     Thread.Sleep(100);
                 }
 
-                recordingSeries1Start = Environment.TickCount;
+                recordingSeries1Start = (Environment.TickCount & int.MaxValue);
 
                 ////Command command = commandBuffer.GetCommand(commandBuffer.commandArray.Count - 2);
 
@@ -3113,7 +3115,7 @@ namespace RTLSpectrumAnalyzerGUI
                     Thread.Sleep(100);
                 }
 
-                recordingSeries2Start = Environment.TickCount;
+                recordingSeries2Start = (Environment.TickCount & int.MaxValue);
 
                 recordingSeries1 = false;
                 recordingSeries2 = true;
@@ -3254,16 +3256,16 @@ namespace RTLSpectrumAnalyzerGUI
                             }
                         }*/
 
-                        if (Environment.TickCount - GUIInput.lastInputTime >= BufferFrames.TRANSITION_LENGTH / 2)
+                        if ((Environment.TickCount & int.MaxValue) - GUIInput.lastInputTime >= BufferFrames.TRANSITION_LENGTH / 2)
                         {
                             currentMode = BinDataMode.Indeterminate;
                         }
                         else
                             currentBufferFramesObject.bufferFrames.Change(BinDataMode.Indeterminate, BinDataMode.Near);
 
-                        if (!transitionAnalysesMode && checkBox9.Checked && (Notifications.currentNotificationTimeIndex >= Notifications.notificationTime.Length - 1 || Environment.TickCount - GUIInput.lastInputTime >= Notifications.notificationTime[Notifications.currentNotificationTimeIndex]) && !analyzingUserSelectedFrequency)
+                        if (!transitionAnalysesMode && checkBox9.Checked && (Notifications.currentNotificationTimeIndex >= Notifications.notificationTime.Length - 1 || (Environment.TickCount & int.MaxValue) - GUIInput.lastInputTime >= Notifications.notificationTime[Notifications.currentNotificationTimeIndex]) && !analyzingUserSelectedFrequency)
                         {
-                            double seconds = Math.Ceiling((double)(Notifications.notificationTime[Notifications.notificationTime.Length - 1] - (Environment.TickCount - GUIInput.lastInputTime)) / 1000);
+                            double seconds = Math.Ceiling((double)(Notifications.notificationTime[Notifications.notificationTime.Length - 1] - ((Environment.TickCount & int.MaxValue) - GUIInput.lastInputTime)) / 1000);
                             notifyIcon1.BalloonTipTitle = "Recording Far in " + seconds + " seconds";
                             notifyIcon1.BalloonTipText = "Move the mouse or press a key if you're near";
 
@@ -3926,7 +3928,7 @@ namespace RTLSpectrumAnalyzerGUI
                         textBox3.Text = stepSize.ToString();                        
 
                         ////ActivateSettings();
-                        ActivateSettings(false);
+                        ActivateSettings(!accrue);
 
                         if (!accrue || series2BinData == null)
                             series2BinData = new BinData(totalBinCount, "Near Series", BinDataMode.Near);
@@ -5563,7 +5565,7 @@ namespace RTLSpectrumAnalyzerGUI
             if (result == DialogResult.OK)
             {
                 ////LoadData(openFileDialog1.FileName);
-                LoadData(openFileDialog1.FileName, true);
+                LoadData(openFileDialog1.FileName, false);
             }
         }
 

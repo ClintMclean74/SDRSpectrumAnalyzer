@@ -681,7 +681,7 @@ namespace RTLSpectrumAnalyzerGUI
             {                
                 gradients.Add(new GradientArray(bufferFramesArray[0].bufferArray.Length));
 
-                gradients[gradients.Count - 1].time = Environment.TickCount;
+                gradients[gradients.Count - 1].time = (Environment.TickCount & int.MaxValue);
 
                 double[] transitionsStrengthArray;
 
