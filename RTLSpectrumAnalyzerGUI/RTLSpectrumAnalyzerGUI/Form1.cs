@@ -874,12 +874,24 @@ namespace RTLSpectrumAnalyzerGUI
                     if (dataSeries == "Strength Difference")
                         chart.Series[dataSeries].Points.Clear();
 
+                    bool negative = false;
+
                     for (int i = 0; i < lowerResGraphBinCount; i++)
                     {
                         value = data[(long)index];
 
-                        if (value > 100 || dataSeries != "Strength Difference")
+                        /*if (i%2==0)
+                            value = -100;
+                        else
+                            value = -110;
+                            */
+
+                        if (value < 0)
+                            negative = true;
+
+                        ////if (value > 100 || dataSeries != "Strength Difference")
                         {
+                            ////if ((checkBox8.Checked || (checkBox13.Checked && analyzingNearFarTransitions)) && value < 0)
                             if (checkBox8.Checked || (checkBox13.Checked && analyzingNearFarTransitions))
                             {
                                 if (i < chart.Series[dataSeries].Points.Count && dataSeries != "Strength Difference")
@@ -954,7 +966,7 @@ namespace RTLSpectrumAnalyzerGUI
                                 }
                             }
 
-                            if (i >= 0)
+                            ////if (i >= 0)
                             {
                                 if (value < minY)
                                 {
@@ -1042,12 +1054,53 @@ namespace RTLSpectrumAnalyzerGUI
                         if (dataSeries != "Series" && dataSeries != "AvgSeries")
                         {
                             if (checkBox3.Checked)
-                                chart.ChartAreas[0].AxisY.Minimum = Math.Round(minY, 2);
+                            {
+                                double roundMin = Math.Round(minY, 2);
+                                
+                                chart.ChartAreas[0].AxisY.Minimum = roundMin;
+                                chart.ChartAreas[0].AxisY2.Minimum = roundMin;
+                            }
 
                             if (checkBox3.Checked)
-                                chart.ChartAreas[0].AxisY.Maximum = Math.Round(maxY, 2);
+                            {
+                                double roundMax = Math.Round(maxY, 2);
+
+                                chart.ChartAreas[0].AxisY.Maximum = roundMax;
+                                chart.ChartAreas[0].AxisY2.Maximum = roundMax;
+                            }
 
                             chart.ChartAreas[0].AxisY.Maximum += 0.01;
+                            chart.ChartAreas[0].AxisY2.Maximum += 0.01;
+                        }
+                        else                         
+                        {
+                            if (checkBox3.Checked)
+                            {
+                                double roundMin = Math.Round(minY, 2);
+
+                                if (dataSeries == "Series")
+                                    chart.ChartAreas[0].AxisY.Minimum = roundMin;
+                                else
+                                if (dataSeries == "AvgSeries")
+                                    chart.ChartAreas[0].AxisY2.Minimum = roundMin;
+                            }
+
+                            if (checkBox3.Checked)
+                            {
+                                double roundMax = Math.Round(maxY, 2);
+
+                                if (dataSeries == "Series")
+                                    chart.ChartAreas[0].AxisY.Maximum = roundMax;
+                                else
+                                if (dataSeries == "AvgSeries")
+                                    chart.ChartAreas[0].AxisY2.Maximum = roundMax;
+                            }
+
+                            if (dataSeries == "Series")
+                                chart.ChartAreas[0].AxisY.Maximum += 0.01;
+                            else
+                                if (dataSeries == "AvgSeries")
+                                chart.ChartAreas[0].AxisY2.Maximum += 0.01;
                         }
                     }
 
@@ -1966,13 +2019,15 @@ namespace RTLSpectrumAnalyzerGUI
 
                                 if (leaderBoardSignalIndex == -1)
                                 {
-                                    interestingSignals[i].rating = (interestingSignals.Count - i);
+                                    interestingSignals[i].rating = ((interestingSignals.Count - i)*10) - interestingSignals.Count/2;
+                                    ////interestingSignals[i].rating = ((interestingSignals.Count - i) * 10);
 
                                     leaderBoardSignals.Add(interestingSignals[i]);
                                 }
                                 else
                                 {
-                                    leaderBoardSignals[leaderBoardSignalIndex].rating += (interestingSignals.Count - i);
+                                    leaderBoardSignals[leaderBoardSignalIndex].rating += ((interestingSignals.Count - i)*10) - interestingSignals.Count/2;
+                                    ////leaderBoardSignals[leaderBoardSignalIndex].rating += ((interestingSignals.Count - i) * 10);
                                 }
                             }
 
@@ -2847,7 +2902,8 @@ namespace RTLSpectrumAnalyzerGUI
 
                 for (int i = 0; i < transitionGradientArray.array.Count; i++)
                 {
-                    if (transitionGradientArray.array[i]!=null && (FrequencyInInterestingAndLeaderBoardSignals(transitionGradientArray.array[i].frequency, STRONGEST_INTERESTING_AND_LEADERBOARD_SIGNALS_FOR_TRANSITIONS) || transitionGradientArray.array[i].rangeWidth>1))
+                    ////if (transitionGradientArray.array[i]!=null && (FrequencyInInterestingAndLeaderBoardSignals(transitionGradientArray.array[i].frequency, STRONGEST_INTERESTING_AND_LEADERBOARD_SIGNALS_FOR_TRANSITIONS) || transitionGradientArray.array[i].rangeWidth>1))
+                    if (transitionGradientArray.array[i] != null)
                     {
                         ////if (Math.Abs(transitionGradientArray.array[i].frequency - 434936500) < 10000)
                             ////index = i;
@@ -5377,19 +5433,16 @@ namespace RTLSpectrumAnalyzerGUI
             leaderboardGraph.chart1.Series["AvgSeries"].Points.Clear();
 
             leaderboardGraph.chart1.Series["Series"].LegendText = "Rating";
-            leaderboardGraph.chart1.Series["AvgSeries"].LegendText = "Density Graph";
+            leaderboardGraph.chart1.Series["AvgSeries"].LegendText = "Density Graph";       
 
 
             GraphDataForRange(leaderboardGraph.chart1, "Series", leaderboardSignalsArray, zoomedOutBufferObject.lowerFrequency, zoomedOutBufferObject.upperFrequency, zoomedOutBufferObject.binSize);
 
-
-            double[] leaderboardSignalsArrayDouble = SignalDataUtilities.SegmentSeries(Utilities.ConvertFloatArrayToDoubleArray(leaderboardSignalsArray), (int)(zoomedOutBufferObject.upperFrequency - zoomedOutBufferObject.lowerFrequency) / DENSITY_GRAPH_SEGMENT_SIZE);                        
-
+            double[] leaderboardSignalsArrayDouble = SignalDataUtilities.SegmentSeries(Utilities.ConvertFloatArrayToDoubleArray(leaderboardSignalsArray), (int)(zoomedOutBufferObject.upperFrequency - zoomedOutBufferObject.lowerFrequency) / DENSITY_GRAPH_SEGMENT_SIZE);
 
             GraphDataForRange(leaderboardGraph.chart1, "AvgSeries", Utilities.ConvertDoubleArrayToFloatArray(leaderboardSignalsArrayDouble), zoomedOutBufferObject.lowerFrequency, zoomedOutBufferObject.upperFrequency, zoomedOutBufferObject.binSize);
-
-
-            leaderboardGraph.chart1.ChartAreas[0].AxisX.Maximum = series1BinData.binArray.Length - 1;
+                    
+            /*////leaderboardGraph.chart1.ChartAreas[0].AxisX.Maximum = series1BinData.binArray.Length - 1;
             leaderboardGraph.chart1.ChartAreas[0].AxisX2.Maximum = series1BinData.binArray.Length - 1;
 
             leaderboardGraph.chart1.ChartAreas[0].AxisY.Minimum = Double.NaN;
@@ -5399,6 +5452,7 @@ namespace RTLSpectrumAnalyzerGUI
             leaderboardGraph.chart1.ChartAreas[0].AxisY2.Maximum = Double.NaN;
 
             leaderboardGraph.chart1.ChartAreas[0].RecalculateAxesScale();
+            */
 
 
             leaderboardGraph.WindowState = FormWindowState.Normal;
