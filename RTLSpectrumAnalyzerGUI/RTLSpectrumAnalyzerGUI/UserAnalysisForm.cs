@@ -137,6 +137,8 @@ namespace RTLSpectrumAnalyzerGUI
 
         private void button17_Click(object sender, EventArgs e)
         {
+            mainForm.Flush();
+
             ////if (!Properties.Settings.Default.DontShowInfoBox1)
             ShowTransitionDialog();            
 

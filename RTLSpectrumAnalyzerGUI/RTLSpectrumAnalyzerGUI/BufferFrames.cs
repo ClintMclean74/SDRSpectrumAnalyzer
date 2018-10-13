@@ -996,7 +996,7 @@ namespace RTLSpectrumAnalyzerGUI
                     }
                 }
 
-                if (minIndex < 0)
+                if (minIndex < 0 || (minIndex == bufferFramesArray.Count-1 && bufferFramesArray[(int)minIndex].stackedFrames >= bufferFramesArray[(int)minIndex-1].stackedFrames))
                 {
                     bufferFramesArray.Add(bufferFrame.Clone());
                 }
