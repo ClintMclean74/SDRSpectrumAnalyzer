@@ -1,2 +1,8 @@
 Move away from the detector's antenna and computer for more than 8 seconds
-and return, then move the mouse or press a key to indicate that you're near.
+and at least a few meters and return, then move the mouse or press a key
+to indicate that you're near.
+
+8 seconds later a new transition graph should be produced.
+
+To do another transition analysis, select the "Stop" button and then the
+"Check Far to Near Transition Strength Increase" button.

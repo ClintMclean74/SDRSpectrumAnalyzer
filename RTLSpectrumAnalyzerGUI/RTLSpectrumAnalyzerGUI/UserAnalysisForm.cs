@@ -117,16 +117,23 @@ namespace RTLSpectrumAnalyzerGUI
             {
                 UserInfoDialog dialog = new UserInfoDialog((int)UserInfoDialogs.TransitionDialog);
 
-                ////string userTransitionAnalysisText = Utilities.GetResourceText("RTLSpectrumAnalyzerGUI.Resources.UserTransitionAnalysis.txt");
-
+                
                 string userTransitionAnalysisText = "Move away from the detector's antenna and computer for more than ";
 
                 userTransitionAnalysisText += (BufferFrames.TRANSITION_LENGTH / 2000);
 
-                userTransitionAnalysisText += " seconds and return, \r\nthen move the mouse or press a key to indicate that you're near.";
+                userTransitionAnalysisText += " seconds and at least a few meters and return.";
+                userTransitionAnalysisText += "\r\n\r\nAs soon as you're at your computer and near the antenna, move the mouse or press a key to indicate that you're near.";
 
-                userTransitionAnalysisText += "\r\n\r\nRemember to do this for the frequency and the frequency range, using the selection";
-                userTransitionAnalysisText += "\r\nbuttons on the bottom left of the form.";
+                userTransitionAnalysisText += "\r\n\r\n" + (BufferFrames.TRANSITION_LENGTH / 2000);
+
+                userTransitionAnalysisText += " seconds later a new transition graph should be produced.";
+
+                userTransitionAnalysisText += "\r\n\r\nTo do another transition analysis, select the \"Stop\" button and then the ";
+                userTransitionAnalysisText += "\"Check Far to Near Transition Strength Increase\" button.";
+
+                userTransitionAnalysisText += "\r\n\r\nRemember to do this for the frequency and the frequency range, using the selection ";
+                userTransitionAnalysisText += "buttons on the bottom left of the form.";
 
 
                 dialog.SetText(userTransitionAnalysisText);

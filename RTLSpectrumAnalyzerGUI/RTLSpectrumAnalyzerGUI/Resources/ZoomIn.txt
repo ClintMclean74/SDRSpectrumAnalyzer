@@ -1,0 +1,4 @@
+﻿Frequencies cannot be zoomed into when another frequency range
+or the same range is currently being zoomed into.
+
+Although transition data is shown on the graphs if available.

@@ -133,8 +133,8 @@ namespace RTLSpectrumAnalyzerGUI
         List<InterestingSignal> interestingSignalsForAnalysis = new List<InterestingSignal>();
         List<InterestingSignal> transitionSignalsToBeAnalysed = new List<InterestingSignal>();
 
-        short MAX_LEADER_BOARD_LIST_COUNT = 100;
-        short MAX_INTERESTING_SIGNAL_LIST_COUNT = 100;
+        short MAX_LEADER_BOARD_LIST_COUNT = 1000;
+        short MAX_INTERESTING_SIGNAL_LIST_COUNT = 1000;
         short MAX_INTERESTING_SIGNAL_LIST_BOX_COUNT = 100;
         short MAX_INTERESTING_SIGNALS_FOR_EVALUATION_COUNT = 8;
         short MAX_LEADERBOARD_SIGNALS_FOR_EVALUATION_COUNT = 4;
@@ -521,22 +521,32 @@ namespace RTLSpectrumAnalyzerGUI
 
                 string[] itemStrArray = itemStr.Split(':');
 
-                if (itemStrArray[0].IndexOf("to") > -1)
-                {
-                    Utilities.FrequencyRange frequencyRange = Utilities.GetFrequencyRangeFromString(itemStrArray[0]);
 
-                    transitionFrequency = (long)frequencyRange.lower;
-                }
-                else
+                for (int i = 0; i < listBox2.Items.Count; i++)
                 {
-                    itemStrArray[0] = itemStrArray[0].Substring(0, itemStrArray[0].Length - 3);
+                    itemStr = (string)listBox2.Items[i];
 
-                    transitionFrequency = (long)(double.Parse(itemStrArray[0]) * 1000000);
-                }
+                    itemStrArray = itemStr.Split(':');
 
-                if (bufferFramesArray.EvaluateWhetherReradiatedFrequency(transitionFrequency))
-                {
-                    signalsList.Add(new InterestingSignal(0, 0, 0, transitionFrequency));
+                    if (itemStrArray[0].IndexOf("to") > -1)
+                    {
+                        Utilities.FrequencyRange frequencyRange = Utilities.GetFrequencyRangeFromString(itemStrArray[0]);
+
+                        transitionFrequency = (long)frequencyRange.lower;
+                    }
+                    else
+                    {
+                        itemStrArray[0] = itemStrArray[0].Substring(0, itemStrArray[0].Length - 3);
+
+                        transitionFrequency = (long)(double.Parse(itemStrArray[0]) * 1000000);
+                    }
+
+                    if (bufferFramesArray.EvaluateWhetherReradiatedFrequency(transitionFrequency))
+                    {
+                        signalsList.Add(new InterestingSignal(0, 0, 0, transitionFrequency));
+
+                        break;
+                    }
                 }
             }
 
@@ -1880,16 +1890,17 @@ namespace RTLSpectrumAnalyzerGUI
 
                                         if (bufferFramesArray.EvaluateWhetherReradiatedFrequency(reradiatedFrequency))
                                         {
+                                            int interestingSignalIndex = Utilities.FrequencyInSignals(reradiatedFrequency, MAX_INTERESTING_SIGNAL_LIST_COUNT, interestingSignals, checkBox14.Checked, 100000);
 
                                             int leaderboardSignalIndex;
                                             if (checkBox14.Checked)
-                                                leaderboardSignalIndex = Utilities.FrequencyInSignals(reradiatedFrequency, STRONGEST_INTERESTING_AND_LEADERBOARD_SIGNALS_FOR_TRANSITIONS, leaderBoardRanges, checkBox14.Checked);
+                                                leaderboardSignalIndex = Utilities.FrequencyInSignals(reradiatedFrequency, MAX_LEADER_BOARD_LIST_COUNT, leaderBoardRanges, checkBox14.Checked, 100000);
                                             else
-                                                leaderboardSignalIndex = Utilities.FrequencyInSignals(reradiatedFrequency, STRONGEST_INTERESTING_AND_LEADERBOARD_SIGNALS_FOR_TRANSITIONS, leaderBoardSignals, checkBox14.Checked);
+                                                leaderboardSignalIndex = Utilities.FrequencyInSignals(reradiatedFrequency, MAX_LEADER_BOARD_LIST_COUNT, leaderBoardSignals, checkBox14.Checked, 100000);
 
                                             if (leaderboardSignalIndex > -1)
                                             {
-                                                int reradiatedSignalIndex = Utilities.FrequencyInSignals(reradiatedFrequency, reradiatedFrequencies.Count, reradiatedFrequencies, checkBox14.Checked);
+                                                int reradiatedSignalIndex = Utilities.FrequencyInSignals(reradiatedFrequency, reradiatedFrequencies.Count, reradiatedFrequencies, checkBox14.Checked, 100000);
 
                                                 if (reradiatedSignalIndex == -1)
                                                 {
@@ -2021,7 +2032,7 @@ namespace RTLSpectrumAnalyzerGUI
                     bufferFramesObject = bufferFramesArray.GetBufferFramesObjectForFrequency((long)interestingSignals[j].frequency);
 
                     if (bufferFramesObject != null && !bufferFramesObject.possibleReradiatedFrequencyRange)
-                        interestingSignals.RemoveAt(j);
+                       interestingSignals.RemoveAt(j);
                 }
 
                 listBox1.Items.Clear();
@@ -2080,7 +2091,7 @@ namespace RTLSpectrumAnalyzerGUI
                         return -1;
                 });
 
-                    if (leaderBoardSignals.Count > MAX_LEADER_BOARD_LIST_COUNT * 4)
+                    if (leaderBoardSignals.Count > MAX_LEADER_BOARD_LIST_COUNT)
                     {
                         for (int j = leaderBoardSignals.Count - 1; j >= MAX_LEADER_BOARD_LIST_COUNT; j--)
                         {
@@ -4638,6 +4649,23 @@ namespace RTLSpectrumAnalyzerGUI
             }
         }
 
+        private void ShowZoomInDialog()
+        {
+            if (Properties.Settings.Default.DontShowInfoBoxes[(int)UserInfoDialogs.ZoomInDialog] != 1)
+            {
+                UserInfoDialog dialog = new UserInfoDialog((int)UserInfoDialogs.ZoomInDialog);
+
+                string zoomInText = Utilities.GetResourceText("RTLSpectrumAnalyzerGUI.Resources.ZoomIn.txt");
+
+                dialog.SetTitle("ZoomIn To Frequency Information");
+                dialog.SetText(zoomInText);
+
+                dialog.EnableShowMessageAgain(true);
+
+                dialog.ShowDialog();
+            }
+        }
+
         public void ShowUserAnalysisDialog()
         {            
             if (Properties.Settings.Default.DontShowInfoBoxes[(int)UserInfoDialogs.UserAnalysisDialog] != 1)
@@ -5144,8 +5172,7 @@ namespace RTLSpectrumAnalyzerGUI
             checkBox10.CheckedChanged -= checkBox10_CheckedChanged;
 
             if (checkBox10.Checked)
-            {
-                ////checkBox12.Checked = true;
+            {                
                 checkBox10.Checked = false;
             }
 
@@ -5157,8 +5184,7 @@ namespace RTLSpectrumAnalyzerGUI
             checkBox12.CheckedChanged -= checkBox12_CheckedChanged;
             
             if (checkBox12.Checked)
-            {
-                ////checkBox10.Checked = true;
+            {                
                 checkBox12.Checked = false;
             }
 
@@ -5167,34 +5193,7 @@ namespace RTLSpectrumAnalyzerGUI
 
         private void listBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
-            BufferFramesObject zoomedOutBufferObject = bufferFramesArray.GetBufferFramesObject(0);
-
-            if (zoomedOutBufferObject == currentBufferFramesObject)
-            {
-                if (!analyzingNearFarTransitions && listBox1.SelectedIndex > -1)
-                {
-                    ////commandBuffer.AddCommand("UserSelectedFrequencyForAnalysis");
-                    commandBuffer.AddCommand("UserSelectedFrequencyForZooming");
-
-                    string itemStr = (string)listBox1.Items[listBox1.SelectedIndex];
-
-                    string[] itemStrArray = itemStr.Split(':');
-
-                    itemStrArray[0] = itemStrArray[0].Substring(0, itemStrArray[0].Length - 3);
-                    userSelectedFrequencyForZooming = (long)(double.Parse(itemStrArray[0]) * 1000000);
-
-                    /*////automatedZooming = false;
-                    button24.Enabled = true;
-                    */
-
-                    automatedZooming = false;
-
-                    ////programState = ProgramState.ANALYZING_TRANSITIONS;
-
-                    ZoomGraphsToFrequency(userSelectedFrequencyForZooming);
-                    ////ZoomToFrequency(userSelectedFrequencyForZooming);
-                }
-            }
+            ZoomToListBoxFrequency(listBox1);            
         }
 
         private void checkBox9_CheckedChanged(object sender, EventArgs e)
@@ -5208,8 +5207,6 @@ namespace RTLSpectrumAnalyzerGUI
 
         private void checkBox8_CheckedChanged(object sender, EventArgs e)
         {
-            ////showGraphs = false;
-
             checkBox13.Checked = checkBox8.Checked;
         }
 
@@ -5342,26 +5339,7 @@ namespace RTLSpectrumAnalyzerGUI
 
         private void listBox4_SelectedIndexChanged(object sender, EventArgs e)
         {
-            BufferFramesObject zoomedOutBufferObject = bufferFramesArray.GetBufferFramesObject(0);
-
-            if (zoomedOutBufferObject == currentBufferFramesObject)
-            {
-                if (!analyzingNearFarTransitions && listBox4.SelectedIndex > -1)
-                {
-                    commandBuffer.AddCommand("UserSelectedFrequencyForZooming");
-
-                    string itemStr = (string)listBox4.Items[listBox4.SelectedIndex];
-
-                    string[] itemStrArray = itemStr.Split(':');
-
-                    itemStrArray[0] = itemStrArray[0].Substring(0, itemStrArray[0].Length - 3);
-                    userSelectedFrequencyForZooming = (long)(double.Parse(itemStrArray[0]) * 1000000);
-
-                    automatedZooming = false;
-
-                    ZoomGraphsToFrequency(userSelectedFrequencyForZooming);
-                }
-            }
+            ZoomToListBoxFrequency(listBox4);            
         }
 
         private void button26_Click(object sender, EventArgs e)
@@ -5402,43 +5380,11 @@ namespace RTLSpectrumAnalyzerGUI
 
         private void listBox2_SelectedIndexChanged(object sender, EventArgs e)
         {
-            BufferFramesObject zoomedOutBufferObject = bufferFramesArray.GetBufferFramesObject(0);
-
-            if (zoomedOutBufferObject == currentBufferFramesObject)
-            {
-                if (!analyzingNearFarTransitions && listBox2.SelectedIndex > -1)
-                {
-                    commandBuffer.AddCommand("UserSelectedFrequencyForZooming");
-
-                    automatedZooming = false;
-
-                    string itemStr = (string)listBox2.Items[listBox2.SelectedIndex];
-
-                    string[] itemStrArray = itemStr.Split(':');
-
-                    if (itemStrArray[0].IndexOf("to") > -1)
-                    {
-                        Utilities.FrequencyRange frequencyRange = Utilities.GetFrequencyRangeFromString(itemStrArray[0]);
-
-                        ZoomGraphsToFrequency((long)frequencyRange.lower, (long)frequencyRange.upper);
-                    }
-                    else
-                    {
-                        itemStrArray[0] = itemStrArray[0].Substring(0, itemStrArray[0].Length - 3);
-
-                        userSelectedFrequencyForZooming = (long)(double.Parse(itemStrArray[0]) * 1000000);
-
-                        ZoomGraphsToFrequency(userSelectedFrequencyForZooming, userSelectedFrequencyForZooming);
-                    }
-                    
-                }
-            }
+            ZoomToListBoxFrequency(listBox2);            
         }
 
         private void Form1_Resize(object sender, EventArgs e)
         {
-            ////_form_resize._get_initial_size();
-
             if (_form_resize!=null)
                 _form_resize._resize();
         }
@@ -5631,6 +5577,81 @@ namespace RTLSpectrumAnalyzerGUI
                     accrue = true;
                 }
             }
+        }
+
+        private void listBox6_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            ZoomToListBoxFrequency(listBox6);            
+        }
+
+        private void ZoomToListBoxFrequency(ListBox listbox)
+        {
+            if (listbox.SelectedIndex > -1)
+            {
+                long startFrequency = -1;
+                long endFrequency = -1;
+
+                string itemStr = (string)listbox.Items[listbox.SelectedIndex];
+
+                string[] itemStrArray = itemStr.Split(':');
+
+                if (itemStrArray[0].IndexOf("to") > -1)
+                {
+                    Utilities.FrequencyRange frequencyRange = Utilities.GetFrequencyRangeFromString(itemStrArray[0]);
+
+                    startFrequency = (long)frequencyRange.lower;
+
+                    endFrequency = (long)frequencyRange.upper;
+                }
+                else
+                {
+                    itemStrArray[0] = itemStrArray[0].Substring(0, itemStrArray[0].Length - 3);
+
+                    userSelectedFrequencyForZooming = (long)(double.Parse(itemStrArray[0]) * 1000000);
+
+                    startFrequency = userSelectedFrequencyForZooming;
+
+                    endFrequency = startFrequency;
+                }
+
+                BufferFramesObject zoomedOutBufferObject = bufferFramesArray.GetBufferFramesObject(0);
+
+                if (zoomedOutBufferObject == currentBufferFramesObject)
+                {
+                    if (!analyzingNearFarTransitions && listbox.SelectedIndex > -1)
+                    {
+                        commandBuffer.AddCommand("UserSelectedFrequencyForZooming");
+
+                        automatedZooming = false;
+
+                        ZoomGraphsToFrequency(startFrequency, endFrequency);
+                    }
+                }
+                else
+                    ShowZoomInDialog();
+
+                transitionGradientArray = bufferFramesArray.GetStrongestTransitionsFrequencyGradientArray(endFrequency != -1 && endFrequency != startFrequency);
+
+                if (transitionGradientArray != null)
+                {
+                    TransitionGradient transitionGradient;
+
+                    if (startFrequency != endFrequency && endFrequency != -1)
+                    {
+                        transitionGradient = transitionGradientArray.GetTransitionGradientForFrequency(startFrequency, endFrequency, binSize / 10);
+                    }
+                    else
+                        transitionGradient = transitionGradientArray.GetTransitionGradientForFrequency(startFrequency, binSize * 100);
+
+                    if (transitionGradient != null)
+                        GraphTransitionData(transitionGradient);
+                }
+            }
+        }
+
+        private void listBox5_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            ZoomToListBoxFrequency(listBox5);
         }
 
         public void ShowSaveDataDialogAndSaveData()

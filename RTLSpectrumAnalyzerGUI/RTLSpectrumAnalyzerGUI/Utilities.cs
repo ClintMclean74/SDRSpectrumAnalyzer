@@ -115,7 +115,6 @@ namespace RTLSpectrumAnalyzerGUI
             Utilities.FrequencyRange frequencyRange = Utilities.GetFrequencyRangeFromFrequency(frequency);
 
             if (strongestRange == -1)
-
                 strongestRange = signals.Count;
 
             for (int i = 0; i < signals.Count && i < strongestRange; i++)
@@ -174,7 +173,7 @@ namespace RTLSpectrumAnalyzerGUI
             var assembly = Assembly.GetExecutingAssembly();
             var resourceName = textResourceName;
 
-            ////string[] resources = assembly.GetManifestResourceNames();
+            string[] resources = assembly.GetManifestResourceNames();
 
             using (Stream stream = assembly.GetManifestResourceStream(resourceName))
             using (StreamReader reader = new StreamReader(stream))

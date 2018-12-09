@@ -40,7 +40,8 @@ namespace RTLSpectrumAnalyzerGUI
 
         public readonly static double[] minStrengthForRankings = { 120, 110, 105, 100 };
 
-        public const long MIN_TRANSITION_SUCCESS_PERCENTAGE = 70;
+        public const long MIN_TRANSITION_SUCCESS_PERCENTAGE_UPPER = 60;
+        public const long MIN_TRANSITION_SUCCESS_PERCENTAGE_LOWER = 51;
 
         public int currentBufferIndex = -1;
         public int startBufferIndex = 0;
@@ -775,7 +776,8 @@ namespace RTLSpectrumAnalyzerGUI
                 }
             }
 
-            if (((float)successCount / gradients.Count * 100) >= BufferFrames.MIN_TRANSITION_SUCCESS_PERCENTAGE)
+            if (((float)successCount / gradients.Count * 100) >= Math.Max(BufferFrames.MIN_TRANSITION_SUCCESS_PERCENTAGE_LOWER, MIN_TRANSITION_SUCCESS_PERCENTAGE_UPPER - gradients.Count))
+            ////if (((float)successCount / gradients.Count * 100) >= Math.Max(51, MIN_TRANSITION_SUCCESS_PERCENTAGE_UPPER - gradients.Count))
                 return true;
 
             return false;

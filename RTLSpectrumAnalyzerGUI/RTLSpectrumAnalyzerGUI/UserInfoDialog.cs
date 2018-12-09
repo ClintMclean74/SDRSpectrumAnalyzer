@@ -9,7 +9,7 @@ using System.Windows.Forms;
 
 namespace RTLSpectrumAnalyzerGUI
 {
-    public enum UserInfoDialogs {StartDialog, UserAnalysisDialog, TransitionDialog};
+    public enum UserInfoDialogs {StartDialog, UserAnalysisDialog, TransitionDialog, ZoomInDialog };
 
     public partial class UserInfoDialog : Form
     {

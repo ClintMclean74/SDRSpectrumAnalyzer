@@ -384,13 +384,13 @@ namespace RTLSpectrumAnalyzerGUI
             // Create the new bitmap and associated graphics object
             Graphics g = Graphics.FromImage(source.Image);
 
-            Rectangle srcRect = new Rectangle(0, 0, source.Width, source.Height);
-            Rectangle dstRect = new Rectangle(0, 1, source.Width, source.Height);
+            Rectangle srcRect = new Rectangle(0, 0, source.Image.Width, source.Image.Height);
+            Rectangle dstRect = new Rectangle(0, 1, source.Image.Width, source.Image.Height);
 
             // Draw the specified section of the source bitmap to the new one
-            g.DrawImage(source.Image, 0, 1, source.Width, source.Height);
+            g.DrawImage(source.Image, 0, 1, source.Image.Width, source.Image.Height);
 
-            // Clean up
+            // Clean up-
             g.Dispose();
         }      
 
