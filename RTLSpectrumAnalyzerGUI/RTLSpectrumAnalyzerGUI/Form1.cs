@@ -262,6 +262,8 @@ namespace RTLSpectrumAnalyzerGUI
 
         clsResize _form_resize;
 
+        ////public bool neverShowGraphs = false;
+
         public long GetAverageNumberOfFramesForFrequencyRegion(BinData binData, BinDataMode binDataMode, long lowerFrequency, long upperFrequency, long dataLowerFrequency, double binSize)
         {
             BufferFramesObject zoomedOutBufferObject = bufferFramesArray.GetBufferFramesObject(0);
@@ -871,6 +873,31 @@ namespace RTLSpectrumAnalyzerGUI
             }
         }
 
+        private void EnableShowGraphButtons(bool enable)
+        {
+            checkBox8.Enabled = checkBox13.Enabled = checkBox15.Enabled = enable;
+
+            if (enable)
+            {
+                if (checkBox8.Checked)
+                    mainForm.checkBox13.Enabled = mainForm.checkBox15.Enabled = false;
+                else
+                    mainForm.checkBox13.Enabled = mainForm.checkBox15.Enabled = true;
+            }
+        }
+
+        private bool ShowGraphs()
+        {
+            if (!checkBox8.Enabled)
+                return false;
+
+            ////if (!checkBox15.Checked)
+            if (checkBox8.Checked || (checkBox13.Checked && analyzingNearFarTransitions))
+                    return true;
+
+            return false;            
+        }
+
         private double RangeChanged(System.Windows.Forms.DataVisualization.Charting.Chart chart, string dataSeries, float[] data, long lowerIndex, long upperIndex, double newLowerFrequency, ref double graphBinFreqInc)
         {
             try
@@ -930,7 +957,8 @@ namespace RTLSpectrumAnalyzerGUI
                         ////if (value > 100 || dataSeries != "Strength Difference")
                         {
                             ////if ((checkBox8.Checked || (checkBox13.Checked && analyzingNearFarTransitions)) && value < 0)
-                            if (checkBox8.Checked || (checkBox13.Checked && analyzingNearFarTransitions))
+                            ////if (checkBox8.Checked || (checkBox13.Checked && analyzingNearFarTransitions))
+                            if (ShowGraphs())
                             {
                                 if (i < chart.Series[dataSeries].Points.Count && dataSeries != "Strength Difference")
                                 {
@@ -966,7 +994,8 @@ namespace RTLSpectrumAnalyzerGUI
                                             {
                                                 interestingSignal = interestingSignals[interestingSignalIndex];
 
-                                                if (checkBox8.Checked || (checkBox13.Checked && analyzingNearFarTransitions))
+                                                ////if (checkBox8.Checked || (checkBox13.Checked && analyzingNearFarTransitions))
+                                                if (ShowGraphs())
                                                 {
                                                     if (graphPoint1 != null)
                                                     {
@@ -1087,7 +1116,8 @@ namespace RTLSpectrumAnalyzerGUI
                     if (minY == maxY)
                         maxY = minY + 0.01;
 
-                    if (checkBox8.Checked || (checkBox13.Checked && analyzingNearFarTransitions))
+                    ////if (checkBox8.Checked || (checkBox13.Checked && analyzingNearFarTransitions))
+                    if (ShowGraphs())
                     {
                         if (dataSeries != "Series" && dataSeries != "AvgSeries")
                         {
@@ -1195,7 +1225,8 @@ namespace RTLSpectrumAnalyzerGUI
                     {
                         if (chart == chart1)
                         {
-                            if (checkBox8.Checked || (checkBox13.Checked && analyzingNearFarTransitions))
+                            ////if (checkBox8.Checked || (checkBox13.Checked && analyzingNearFarTransitions))
+                            if (ShowGraphs())
                             {
                                 if (recordingSeries2 && waterFall.GetMode() == WaterFallMode.Strength)
                                 {
@@ -1217,7 +1248,8 @@ namespace RTLSpectrumAnalyzerGUI
                             {
                                 if (recordingSeries2 && waterFallAvg.GetMode() == WaterFallMode.Strength)
                                 {
-                                    if (checkBox8.Checked || (checkBox13.Checked && analyzingNearFarTransitions))
+                                    ////if (checkBox8.Checked || (checkBox13.Checked && analyzingNearFarTransitions))
+                                    if (ShowGraphs())
                                     {
                                         waterFallAvg.RefreshWaterfall(series2BinData.avgBinArray, series1BinData.avgBinArray, lowerIndex + 1, upperIndex);
 
@@ -1236,7 +1268,8 @@ namespace RTLSpectrumAnalyzerGUI
                                             nearStrengthDeltaRange = interestingSignals[i++].strengthDif;
                                     }
 
-                                    if (checkBox8.Checked || (checkBox13.Checked && analyzingNearFarTransitions))
+                                    ////if (checkBox8.Checked || (checkBox13.Checked && analyzingNearFarTransitions))
+                                    if (ShowGraphs())
                                     {
                                         if (nearStrengthDeltaRange > 0)
                                             waterFallAvg.SetNearStrengthDeltaRange(nearStrengthDeltaRange);
@@ -1715,7 +1748,8 @@ namespace RTLSpectrumAnalyzerGUI
 
                 transitionGradientArray.Sort();
 
-                if (checkBox8.Checked || (checkBox13.Checked && analyzingNearFarTransitions) && checkBox12.Checked)
+                ////if (checkBox8.Checked || (checkBox13.Checked && analyzingNearFarTransitions) && checkBox12.Checked)
+                if (ShowGraphs())
                     GraphDataForRange(chart2, "Strength Difference", ratioBinArray, graph2LowerFrequency, graph2UpperFrequency, graph2BinFreqInc);
                 else
                     chart2.Series["Strength Difference"].Points.Clear();
@@ -1734,6 +1768,8 @@ namespace RTLSpectrumAnalyzerGUI
                         currentBufferFramesObject.transitionBufferFrames.nearIndex = currentBufferFramesObject.transitionBufferFrames.bufferFramesArray.Count - 1;
 
                     commandQueue.AddCommand("RecordSeries2");
+
+                    EnableShowGraphButtons(true);
 
                     StopRecording();
                 }
@@ -2145,7 +2181,8 @@ namespace RTLSpectrumAnalyzerGUI
                     }
                 }
 
-                if (checkBox8.Checked || (checkBox13.Checked && analyzingNearFarTransitions) && checkBox10.Checked)
+                ////if (checkBox8.Checked || (checkBox13.Checked && analyzingNearFarTransitions) && checkBox10.Checked)
+                if (ShowGraphs())
                     GraphDataForRange(chart2, "Strength Difference", difBinArray, graph2LowerFrequency, graph2UpperFrequency, graph2BinFreqInc);
                 else
                     chart2.Series["Strength Difference"].Points.Clear();
@@ -2289,87 +2326,90 @@ namespace RTLSpectrumAnalyzerGUI
 
         private void AddGradientPoint(System.Windows.Forms.DataVisualization.Charting.Chart chart, TextBox textBox, double gradientValue, bool show)
         {
-            try
+            if (ShowGraphs())
             {
-                textBox.Text = Math.Round(gradientValue, 2).ToString();
-
-                System.Windows.Forms.DataVisualization.Charting.DataPoint graphPoint = new System.Windows.Forms.DataVisualization.Charting.DataPoint(chart.Series["Series"].Points.Count, gradientValue);
-
-                if (chart.Series["Series"].Points.Count > MAXIMUM_TIME_BASED_GRAPH_POINTS)
+                try
                 {
-                    chart.Series["Series"].Points.RemoveAt(0);
+                    textBox.Text = Math.Round(gradientValue, 2).ToString();
+
+                    System.Windows.Forms.DataVisualization.Charting.DataPoint graphPoint = new System.Windows.Forms.DataVisualization.Charting.DataPoint(chart.Series["Series"].Points.Count, gradientValue);
+
+                    if (chart.Series["Series"].Points.Count > MAXIMUM_TIME_BASED_GRAPH_POINTS)
+                    {
+                        chart.Series["Series"].Points.RemoveAt(0);
+
+                        for (int j = 0; j < chart.Series["Series"].Points.Count; j++)
+                        {
+                            chart.Series["Series"].Points[j].XValue--;
+                        }
+                    }
+
+                    ////if (checkBox8.Checked || (checkBox13.Checked && analyzingNearFarTransitions))
+                    if (show)
+                        chart.Series["Series"].Points.Add(graphPoint);
+
+                    if (chart == chart5)
+                    {
+                        chart.ChartAreas[0].AxisY.Maximum = 4;
+                        chart.ChartAreas[0].AxisY.Minimum = 0;
+                    }
+
+                    double totalAvg = 0;
+                    double avg = 0;
+
+
+                    double minY = 99999999;
+                    double maxY = -99999999;
 
                     for (int j = 0; j < chart.Series["Series"].Points.Count; j++)
                     {
-                        chart.Series["Series"].Points[j].XValue--;
+                        if (chart.Series["Series"].Points[j].YValues[0] < minY)
+                            minY = chart.Series["Series"].Points[j].YValues[0];
+
+                        if (chart.Series["Series"].Points[j].YValues[0] > maxY)
+                            maxY = chart.Series["Series"].Points[j].YValues[0];
+
+                        totalAvg += chart.Series["Series"].Points[j].YValues[0];
                     }
-                }
 
-                ////if (checkBox8.Checked || (checkBox13.Checked && analyzingNearFarTransitions))
-                if (show)
-                    chart.Series["Series"].Points.Add(graphPoint);
-
-                if (chart == chart5)
-                {
-                    chart.ChartAreas[0].AxisY.Maximum = 4;
-                    chart.ChartAreas[0].AxisY.Minimum = 0;
-                }
-
-                double totalAvg = 0;
-                double avg = 0;
-
-
-                double minY = 99999999;
-                double maxY = -99999999;
-
-                for (int j = 0; j < chart.Series["Series"].Points.Count; j++)
-                {
-                    if (chart.Series["Series"].Points[j].YValues[0] < minY)
-                        minY = chart.Series["Series"].Points[j].YValues[0];
-
-                    if (chart.Series["Series"].Points[j].YValues[0] > maxY)
-                        maxY = chart.Series["Series"].Points[j].YValues[0];
-
-                    totalAvg += chart.Series["Series"].Points[j].YValues[0];
-                }
-
-                if (minY == maxY)
-                {
-                    maxY++;
-                    minY--;
-                }
-
-                if (chart.Series["Series"].Points.Count > 0)
-                {
-                    chart.ChartAreas[0].AxisY.Maximum = maxY;
-                    chart.ChartAreas[0].AxisY.Minimum = minY;
-                }
-
-                avg = totalAvg / chart.Series["Series"].Points.Count;
-
-
-                if (checkBox6.Checked && chart == chart4)
-                {
-                    double avgGraphStrengthChange = chart4.Series["Series"].Points[chart4.Series["Series"].Points.Count - 1].YValues[0] - chart4.Series["Series"].Points[chart4.Series["Series"].Points.Count - 2].YValues[0];
-
-                    double strengthVSAvg = chart4.Series["Series"].Points[chart4.Series["Series"].Points.Count - 1].YValues[0] - avg;
-
-                    double graphExtent = chart4.ChartAreas[0].AxisY.Maximum - chart4.ChartAreas[0].AxisY.Minimum;
-
-                    int soundFrequency = (int)((strengthVSAvg / (graphExtent * 500) * 100) * Sound.SOUND_FREQUENCY_MAXIMUM);
-
-                    if (soundFrequency > 0)
+                    if (minY == maxY)
                     {
-                        Sound.PlaySound(soundFrequency, 1000);
-                        form2.BackColor = Color.Red;
+                        maxY++;
+                        minY--;
                     }
-                    else
-                        form2.BackColor = Color.Blue;
-                }
-            }
-            catch (Exception ex)
-            {
 
+                    if (chart.Series["Series"].Points.Count > 0)
+                    {
+                        chart.ChartAreas[0].AxisY.Maximum = maxY;
+                        chart.ChartAreas[0].AxisY.Minimum = minY;
+                    }
+
+                    avg = totalAvg / chart.Series["Series"].Points.Count;
+
+
+                    if (checkBox6.Checked && chart == chart4)
+                    {
+                        double avgGraphStrengthChange = chart4.Series["Series"].Points[chart4.Series["Series"].Points.Count - 1].YValues[0] - chart4.Series["Series"].Points[chart4.Series["Series"].Points.Count - 2].YValues[0];
+
+                        double strengthVSAvg = chart4.Series["Series"].Points[chart4.Series["Series"].Points.Count - 1].YValues[0] - avg;
+
+                        double graphExtent = chart4.ChartAreas[0].AxisY.Maximum - chart4.ChartAreas[0].AxisY.Minimum;
+
+                        int soundFrequency = (int)((strengthVSAvg / (graphExtent * 500) * 100) * Sound.SOUND_FREQUENCY_MAXIMUM);
+
+                        if (soundFrequency > 0)
+                        {
+                            Sound.PlaySound(soundFrequency, 1000);
+                            form2.BackColor = Color.Red;
+                        }
+                        else
+                            form2.BackColor = Color.Blue;
+                    }
+                }
+                catch (Exception ex)
+                {
+
+                }
             }
         }
 
@@ -2422,7 +2462,7 @@ namespace RTLSpectrumAnalyzerGUI
             }
 
             ////if (checkBox8.Checked || (checkBox13.Checked && analyzingNearFarTransitions) || show)
-            if (show)
+            if (ShowGraphs() && show)
                 strengthChart.Series["Series"].Points.Add(graphPoint);
 
 
@@ -2804,8 +2844,9 @@ namespace RTLSpectrumAnalyzerGUI
 
         private void SetButtonsToNotRecordingState()
         {
-            if (showGraphs)
+            /*////if (showGraphs)
                 checkBox8.Checked = true;
+                */
 
             button4.Enabled = true;
             button22.Enabled = button23.Enabled = button24.Enabled = button30.Enabled = button4.Enabled;
@@ -2993,15 +3034,23 @@ namespace RTLSpectrumAnalyzerGUI
 
                 ////Command command = commandBuffer.GetCommand(commandBuffer.commandArray.Count - 2);
 
+
+                ////if (!analyzingNearFarTransitions || automatedZooming || checkBox9.Checked || !analyzingUserSelectedFrequency)
+                    ////checkBox8.Checked = false;
+
                 if (showGraphs)
                 {
                     if (analyzingNearFarTransitions || !automatedZooming || !checkBox9.Checked || analyzingUserSelectedFrequency)
-                        checkBox8.Checked = true;
+                        EnableShowGraphButtons(true);
+                    ////checkBox8.Enabled = checkBox13.Enabled = checkBox15.Enabled = true;
                     else
-                        checkBox8.Checked = false;
+                        EnableShowGraphButtons(false);
+                    ////checkBox8.Enabled = checkBox13.Enabled = checkBox15.Enabled = false;
                 }
                 else
-                    checkBox8.Checked = false;
+                    EnableShowGraphButtons(false);
+                ////checkBox8.Enabled = checkBox13.Enabled = checkBox15.Enabled = false;
+
 
                 framesDif = 0;
 
@@ -3135,7 +3184,8 @@ namespace RTLSpectrumAnalyzerGUI
                                     GraphAverageStrength(null, checkBox8.Checked || (checkBox13.Checked && analyzingNearFarTransitions) || userAnalysisForm.Visible);
                                     ////GraphStrengthToTimeBasedGraph(null);
 
-                                    if (checkBox8.Checked || (checkBox13.Checked && analyzingNearFarTransitions))
+                                    ////if (checkBox8.Checked || (checkBox13.Checked && analyzingNearFarTransitions))
+                                    if (ShowGraphs())
                                     {
                                         chart1.Refresh();
                                         chart2.Refresh();
@@ -3490,7 +3540,8 @@ namespace RTLSpectrumAnalyzerGUI
                                     GraphAverageStrength(null, checkBox8.Checked || (checkBox13.Checked && analyzingNearFarTransitions) || userAnalysisForm.Visible);
                                     ////GraphAverageStrength(null);
 
-                                    if (checkBox8.Checked || (checkBox13.Checked && analyzingNearFarTransitions))
+                                    ////if (checkBox8.Checked || (checkBox13.Checked && analyzingNearFarTransitions))
+                                    if (ShowGraphs())
                                     {
                                         chart1.Refresh();
                                         chart2.Refresh();
@@ -5201,13 +5252,18 @@ namespace RTLSpectrumAnalyzerGUI
             if (!checkBox9.Checked)
             {
                 checkBox8.Checked = true;
-                showGraphs = true;
-            }
+                showGraphs = true;                
+            }            
         }
 
         private void checkBox8_CheckedChanged(object sender, EventArgs e)
         {
-            checkBox13.Checked = checkBox8.Checked;
+            /*////checkBox13.Checked = !checkBox8.Checked;
+
+            checkBox15.Checked = !checkBox8.Checked;
+            */
+
+            mainForm.checkBox13.Enabled = mainForm.checkBox15.Enabled = !checkBox8.Checked;
         }
 
         private void AnalyzeFrequency(long lowerFrequency, long upperFrequency = -1)
@@ -5393,6 +5449,8 @@ namespace RTLSpectrumAnalyzerGUI
         {
             if (checkBox8.Checked && !checkBox13.Checked)
                 checkBox8.Checked = false;
+
+            checkBox15.Checked = !checkBox13.Checked;
         }
 
         private void button27_Click(object sender, EventArgs e)
@@ -5652,6 +5710,11 @@ namespace RTLSpectrumAnalyzerGUI
         private void listBox5_SelectedIndexChanged(object sender, EventArgs e)
         {
             ZoomToListBoxFrequency(listBox5);
+        }
+
+        private void checkBox15_CheckedChanged(object sender, EventArgs e)
+        {
+            checkBox13.Checked = !checkBox15.Checked;
         }
 
         public void ShowSaveDataDialogAndSaveData()

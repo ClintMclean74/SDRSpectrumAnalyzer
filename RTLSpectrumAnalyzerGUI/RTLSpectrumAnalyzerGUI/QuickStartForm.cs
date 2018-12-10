@@ -22,11 +22,25 @@ namespace RTLSpectrumAnalyzerGUI
                 mainForm.checkBox9.Checked = false;
 
             if (checkBox1.Checked)
+            {
                 mainForm.checkBox8.Checked = mainForm.checkBox13.Checked = mainForm.showGraphs = checkBox1.Checked;
+
+                mainForm.checkBox13.Checked = true;
+                mainForm.checkBox15.Checked = false;
+
+                mainForm.checkBox13.Enabled = mainForm.checkBox15.Enabled = false;
+
+                ////mainForm.neverShowGraphs = false;
+            }            
             else
             {
                 mainForm.checkBox8.Checked = mainForm.showGraphs = checkBox1.Checked;
-                mainForm.checkBox13.Checked = true;
+                mainForm.checkBox13.Checked = false;
+                mainForm.checkBox15.Checked = true;
+
+                mainForm.checkBox13.Enabled = mainForm.checkBox15.Enabled = true;
+
+                ////mainForm.neverShowGraphs = true;
             }
 
             if (checkBox10.Checked)
