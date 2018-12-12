@@ -260,6 +260,8 @@ namespace RTLSpectrumAnalyzerGUI
 
         public bool transitionAnalysesMode = false;
 
+        public bool showUserAnalaysisGraphs = false;
+
         clsResize _form_resize;
 
         ////public bool neverShowGraphs = false;
@@ -888,6 +890,9 @@ namespace RTLSpectrumAnalyzerGUI
 
         private bool ShowGraphs()
         {
+            if (showUserAnalaysisGraphs)
+                return false;
+
             if (!checkBox8.Enabled)
                 return false;
 
@@ -1853,7 +1858,7 @@ namespace RTLSpectrumAnalyzerGUI
                 if (dialogResult == DialogResult.Yes)
                 {
                     StopRecording();
-
+                    
                     originalUserSettingShowGraphs = showGraphs;
                     showGraphs = false;
                     checkBox8.Checked = checkBox13.Checked = false;
@@ -2326,7 +2331,7 @@ namespace RTLSpectrumAnalyzerGUI
 
         private void AddGradientPoint(System.Windows.Forms.DataVisualization.Charting.Chart chart, TextBox textBox, double gradientValue, bool show)
         {
-            if (ShowGraphs())
+            if (ShowGraphs() || showUserAnalaysisGraphs)
             {
                 try
                 {
@@ -2462,8 +2467,8 @@ namespace RTLSpectrumAnalyzerGUI
             }
 
             ////if (checkBox8.Checked || (checkBox13.Checked && analyzingNearFarTransitions) || show)
-            if (ShowGraphs() && show)
-                strengthChart.Series["Series"].Points.Add(graphPoint);
+            if ((ShowGraphs() && show) || showUserAnalaysisGraphs)            
+                    strengthChart.Series["Series"].Points.Add(graphPoint);
 
 
             System.Windows.Forms.DataVisualization.Charting.DataPoint prevPoint1;
@@ -2622,7 +2627,7 @@ namespace RTLSpectrumAnalyzerGUI
 
                     AddPointToTimeBasedGraph(chart3, chart4, float.Parse(textBox7.Text));
 
-                    if (userAnalysisForm.Visible)
+                    ////if (userAnalysisForm.Focused)
                         AddPointToTimeBasedGraph(userAnalysisForm.chart3, userAnalysisForm.chart4, float.Parse(textBox7.Text), show);
                 }
 
@@ -2632,7 +2637,7 @@ namespace RTLSpectrumAnalyzerGUI
 
                     AddPointToTimeBasedGraph(chart3, chart4, float.Parse(textBox8.Text));
 
-                    if (userAnalysisForm.Visible)
+                    ////if (showUserAnalaysisGraphs)
                         AddPointToTimeBasedGraph(userAnalysisForm.chart3, userAnalysisForm.chart4, float.Parse(textBox8.Text), show);
                 }
             }

@@ -27,6 +27,17 @@ namespace RTLSpectrumAnalyzerGUI
             this.mainForm = mainForm;
         }
 
+        protected override void OnActivated(EventArgs e)
+        {
+            this.mainForm.showUserAnalaysisGraphs = true;
+        }
+
+
+        protected override void OnDeactivate(EventArgs e)
+        {
+            this.mainForm.showUserAnalaysisGraphs = false;
+        }
+
         private void UserAnalysisForm_FormClosing(object sender, FormClosingEventArgs e)
         {            
             mainForm.ResumeAutomatedAnalysis();
