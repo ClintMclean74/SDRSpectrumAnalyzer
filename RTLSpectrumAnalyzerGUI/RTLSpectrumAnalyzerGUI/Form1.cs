@@ -217,19 +217,21 @@ namespace RTLSpectrumAnalyzerGUI
 
         long userSelectedFrequencyForZooming = -1;
 
-#if SDR_DEBUG
-        public const long REQUIRED_FRAMES_BEFORE_ANALYZING_TRANSITIONS = 10;
-        public const long REQUIRED_ZOOMED_FRAMES_BEFORE_ZOOMING_OUT = 400;
-        public const long REQUIRED_FRAMES_BEFORE_USER_ANALYSIS = 1000;
+
+    #if SDR_DEBUG
+        public const long REQUIRED_FRAMES_BEFORE_ANALYZING_TRANSITIONS = 100;
+        public const long REQUIRED_ZOOMED_FRAMES_BEFORE_ZOOMING_OUT = 1000;
+        public const long REQUIRED_FRAMES_BEFORE_USER_ANALYSIS = 10000;
         public const long REQUIRED_TRANSITIONS_BEFORE_USER_ANALYSIS = 4;
         public const uint MAX_TRANSITION_SCANS = 4;
-#else
+    #else
         public const long REQUIRED_FRAMES_BEFORE_ANALYZING_TRANSITIONS = 100;
         public const long REQUIRED_ZOOMED_FRAMES_BEFORE_ZOOMING_OUT = 1000;
         public const long REQUIRED_FRAMES_BEFORE_USER_ANALYSIS = 10000;
         public const long REQUIRED_TRANSITIONS_BEFORE_USER_ANALYSIS = 4;        
         public const uint MAX_TRANSITION_SCANS = 4;
-#endif
+    #endif
+
 
         public const string SESSION_PATH = "sessions\\";
         public const string PREVIOUS_SESSIONS_PATH = "sessions\\previous_sessions\\";
@@ -891,12 +893,8 @@ namespace RTLSpectrumAnalyzerGUI
         private bool ShowGraphs()
         {
             if (showUserAnalaysisGraphs)
-                return false;
-
-            if (!checkBox8.Enabled)
-                return false;
-
-            ////if (!checkBox15.Checked)
+                return false;            
+            
             if (checkBox8.Checked || (checkBox13.Checked && analyzingNearFarTransitions))
                     return true;
 
@@ -1596,10 +1594,39 @@ namespace RTLSpectrumAnalyzerGUI
             else
             {
                 NativeMethods.GetBinsForDevices(binData.device1BinArray, binData.device2BinArray, 0, 1);
+                
 
-                for (int j = 0; j < binData.size; j++)
+                for (int j = 0; j < currentBufferFramesObject.bufferFrames.bufferFramesArray[currentBufferFramesObject.bufferFrames.currentBufferIndex].bufferArray.Length; j++)
                 {
-                    binData.binArray[j] = binData.device1BinArray[j] / binData.device2BinArray[j];
+                    currentBufferFramesObject.bufferFrames.bufferFramesArray[currentBufferFramesObject.bufferFrames.currentBufferIndex].bufferArray[j] = binData.device1BinArray[j] / binData.device2BinArray[j];
+                }
+
+
+                i = 0;
+
+                float value;
+
+                for (long j = lowerIndex; j < upperIndex; j++)
+                {
+                    value = currentBufferFramesObject.bufferFrames.bufferFramesArray[currentBufferFramesObject.bufferFrames.currentBufferIndex].bufferArray[i];
+
+                    if (Double.IsNaN(value) || value < 0)
+                    {
+                        if (i > 0)
+                            value = currentBufferFramesObject.bufferFrames.bufferFramesArray[currentBufferFramesObject.bufferFrames.currentBufferIndex].bufferArray[i - 1];
+                        else
+                            if (i < binData.size - 1)
+                            value = currentBufferFramesObject.bufferFrames.bufferFramesArray[currentBufferFramesObject.bufferFrames.currentBufferIndex].bufferArray[i + 1];
+                    }
+
+                    if (Double.IsNaN(value) || value < 0)
+                    {
+                        value = 0;
+                    }
+
+                    binData.binArray[j] = currentBufferFramesObject.bufferFrames.bufferFramesArray[currentBufferFramesObject.bufferFrames.currentBufferIndex].bufferArray[i] = value;
+
+                    i++;
                 }
             }
 
@@ -5460,6 +5487,12 @@ namespace RTLSpectrumAnalyzerGUI
 
         private void button27_Click(object sender, EventArgs e)
         {
+            bool prevShowUserAnalaysisGraphs = showUserAnalaysisGraphs;
+            bool prevCheckBox8Checked = checkBox8.Checked;
+
+            showUserAnalaysisGraphs = false;
+            checkBox8.Checked = true;            
+
             BufferFramesObject zoomedOutBufferObject = bufferFramesArray.GetBufferFramesObject(0);
 
             float[] leaderboardSignalsArray = new float[series1BinData.binArray.Length];            
@@ -5483,6 +5516,8 @@ namespace RTLSpectrumAnalyzerGUI
 
             double[] leaderboardSignalsArrayDouble = SignalDataUtilities.SegmentSeries(Utilities.ConvertFloatArrayToDoubleArray(leaderboardSignalsArray), (int)(zoomedOutBufferObject.upperFrequency - zoomedOutBufferObject.lowerFrequency) / DENSITY_GRAPH_SEGMENT_SIZE);
 
+
+
             GraphDataForRange(leaderboardGraph.chart1, "AvgSeries", Utilities.ConvertDoubleArrayToFloatArray(leaderboardSignalsArrayDouble), zoomedOutBufferObject.lowerFrequency, zoomedOutBufferObject.upperFrequency, zoomedOutBufferObject.binSize);
                     
             /*////leaderboardGraph.chart1.ChartAreas[0].AxisX.Maximum = series1BinData.binArray.Length - 1;
@@ -5503,10 +5538,20 @@ namespace RTLSpectrumAnalyzerGUI
             leaderboardGraph.Text = "Leaderboard Graph";
             leaderboardGraph.chart1.Titles[0].Text = "";
             leaderboardGraph.Show();
+
+
+            showUserAnalaysisGraphs = prevShowUserAnalaysisGraphs;
+            checkBox8.Checked = prevCheckBox8Checked;
         }
 
         private void button28_Click(object sender, EventArgs e)
         {
+            bool prevShowUserAnalaysisGraphs = showUserAnalaysisGraphs;
+            bool prevCheckBox8Checked = checkBox8.Checked;
+
+            showUserAnalaysisGraphs = false;
+            checkBox8.Checked = true;
+
             BufferFramesObject zoomedOutBufferObject = bufferFramesArray.GetBufferFramesObject(0);
 
             float[] transitionSignalsArray = new float[series1BinData.binArray.Length];
@@ -5552,10 +5597,20 @@ namespace RTLSpectrumAnalyzerGUI
             leaderboardGraph.Text = "Transitions Graph";
             leaderboardGraph.chart1.Titles[0].Text = "";
             leaderboardGraph.Show();
+
+            showUserAnalaysisGraphs = prevShowUserAnalaysisGraphs;
+            checkBox8.Checked = prevCheckBox8Checked;
         }
 
         private void button29_Click(object sender, EventArgs e)
         {
+            bool prevShowUserAnalaysisGraphs = showUserAnalaysisGraphs;
+            bool prevCheckBox8Checked = checkBox8.Checked;
+
+            showUserAnalaysisGraphs = false;
+            checkBox8.Checked = true;
+
+
             BufferFramesObject zoomedOutBufferObject = bufferFramesArray.GetBufferFramesObject(0);
 
             float[] interestingSignalsArray = new float[series1BinData.binArray.Length];
@@ -5609,6 +5664,9 @@ namespace RTLSpectrumAnalyzerGUI
             leaderboardGraph.chart1.Titles[0].Text = "";
             leaderboardGraph.Show();
 
+            showUserAnalaysisGraphs = prevShowUserAnalaysisGraphs;
+
+            checkBox8.Checked = prevCheckBox8Checked;
         }
 
         private void checkBox14_CheckedChanged(object sender, EventArgs e)
@@ -5720,6 +5778,11 @@ namespace RTLSpectrumAnalyzerGUI
         private void checkBox15_CheckedChanged(object sender, EventArgs e)
         {
             checkBox13.Checked = !checkBox15.Checked;
+        }
+
+        private void groupBox4_Enter(object sender, EventArgs e)
+        {
+
         }
 
         public void ShowSaveDataDialogAndSaveData()
