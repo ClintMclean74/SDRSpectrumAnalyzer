@@ -16,6 +16,8 @@ namespace RTLSpectrumAnalyzerGUI
 
         private void button4_Click(object sender, EventArgs e)
         {
+			mainForm.SetStartup(checkBox4.Checked);
+
             mainForm.transitionAnalysesMode = checkBox2.Checked;
 
             if (!checkBox2.Checked && !checkBox3.Checked)
@@ -91,5 +93,44 @@ namespace RTLSpectrumAnalyzerGUI
             if (checkBox2.Checked)
                 checkBox3.Checked = false;
         }
-    }
+
+		private void checkBox4_CheckedChanged(object sender, EventArgs e)
+		{
+
+		}
+
+		private void quickStartForm_Load(object sender, EventArgs e)
+		{
+			try
+			{
+				if (Properties.Settings.Default.FirstRun == true)
+				{
+					checkBox4.Checked = true;
+
+					Properties.Settings.Default.FirstRun = false;
+					Properties.Settings.Default.Save();
+				}
+				else
+				{
+					Microsoft.Win32.RegistryKey rk = Microsoft.Win32.Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
+
+					if (rk != null)
+					{
+						object rValue = rk.GetValue("RTLSpectrumAnalyzer");
+
+						if (rValue != null)
+						{
+							checkBox4.Checked = true;
+						}
+						else
+							checkBox4.Checked = false;
+					}
+				}
+			}
+			catch(Exception ex)
+			{
+
+			}			
+		}
+	}
 }

@@ -4765,9 +4765,29 @@ namespace RTLSpectrumAnalyzerGUI
             }
         }
 
-        private void Form1_Load(object sender, EventArgs e)
-        {
-            System.IO.Directory.CreateDirectory(SESSION_PATH);
+		public void SetStartup(bool set)
+		{
+			try
+			{
+				Microsoft.Win32.RegistryKey rk = Microsoft.Win32.Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
+
+				if (rk != null)
+				{
+					if (set)
+						rk.SetValue("RTLSpectrumAnalyzer", Application.ExecutablePath);
+					else
+						rk.DeleteValue("RTLSpectrumAnalyzer", false);
+				}
+			}
+			catch(Exception ex)
+			{
+
+			}
+		}
+
+		private void Form1_Load(object sender, EventArgs e)
+        {			
+			System.IO.Directory.CreateDirectory(SESSION_PATH);
             System.IO.Directory.CreateDirectory(PREVIOUS_SESSIONS_PATH);            
 
             this.WindowState = FormWindowState.Maximized;

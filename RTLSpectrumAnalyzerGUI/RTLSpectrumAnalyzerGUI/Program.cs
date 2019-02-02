@@ -13,7 +13,9 @@ namespace RTLSpectrumAnalyzerGUI
         [STAThread]
         static void Main()
         {
-            Application.EnableVisualStyles();
+			System.IO.Directory.SetCurrentDirectory(Application.StartupPath);
+
+			Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new Form1());
         }

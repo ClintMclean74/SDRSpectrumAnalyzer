@@ -8,5 +8,8 @@
     <Setting Name="DontShowInfoBoxes" Type="System.Int32[]" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
+    <Setting Name="FirstRun" Type="System.Boolean" Scope="Application">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
   </Settings>
 </SettingsFile>
