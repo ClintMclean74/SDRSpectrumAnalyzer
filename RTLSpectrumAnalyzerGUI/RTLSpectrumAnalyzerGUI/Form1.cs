@@ -4847,73 +4847,82 @@ namespace RTLSpectrumAnalyzerGUI
 
             Task.Factory.StartNew(() =>
             {
-                int devicesCount, prevDevicesCount = -1;
+                int devicesCount=-1, prevDevicesCount = -1;
 
-                devicesCount = NativeMethods.GetConnectedDevicesCount();
+				while (devicesCount <= 0)
+				{
+					devicesCount = NativeMethods.GetConnectedDevicesCount();
 
-                if (devicesCount != prevDevicesCount)
-                {
-                    if (devicesCount > 0)
-                    {
-                        this.Invoke(new Action(() =>
-                        {
-                            button4.Enabled = true;
-                            button22.Enabled = button23.Enabled = button24.Enabled = button4.Enabled;
-                            userAnalysisForm.button1.Enabled = button24.Enabled;
+					if (devicesCount != prevDevicesCount)
+					{
+						if (devicesCount > 0)
+						{
+							this.Invoke(new Action(() =>
+							{
+								button4.Enabled = true;
+								button22.Enabled = button23.Enabled = button24.Enabled = button4.Enabled;
+								userAnalysisForm.button1.Enabled = button24.Enabled;
 
-                            if (automatedZooming)
-                            {
-                                button24.Enabled = false;
-                                userAnalysisForm.button1.Enabled = button24.Enabled;
-                            }
-                        }));
-                    }
-                    else
-                    {
-                        this.Invoke(new Action(() =>
-                        {
-                            button3.Enabled = false;
-                            button4.Enabled = false;
-                            button22.Enabled = button23.Enabled = button24.Enabled = button4.Enabled;
-                            userAnalysisForm.button1.Enabled = button24.Enabled;
+								if (automatedZooming)
+								{
+									button24.Enabled = false;
+									userAnalysisForm.button1.Enabled = button24.Enabled;
+								}
+							}));
+						}
+						else
+						{
+							this.Invoke(new Action(() =>
+							{
+								button3.Enabled = false;
+								button4.Enabled = false;
+								button22.Enabled = button23.Enabled = button24.Enabled = button4.Enabled;
+								userAnalysisForm.button1.Enabled = button24.Enabled;
 
-                            if (automatedZooming)
-                            {
-                                button24.Enabled = false;
-                                userAnalysisForm.button1.Enabled = button24.Enabled;
-                            }
+								if (automatedZooming)
+								{
+									button24.Enabled = false;
+									userAnalysisForm.button1.Enabled = button24.Enabled;
+								}
 
-                            button5.Enabled = false;
-                        }));
-                    }
+								button5.Enabled = false;
+							}));
+						}
 
-                    if (devicesCount > 1)
-                    {
-                        this.Invoke(new Action(() =>
-                        {
-                            checkBox7.Enabled = true;
+						if (devicesCount > 1)
+						{
+							this.Invoke(new Action(() =>
+							{
+								checkBox7.Enabled = true;
 
-                            checkBox7.Visible = true;
+								checkBox7.Visible = true;
 
-                            if (button4.Enabled)
-                            {
-                                ActivateSettings();
-                            }
-                        }));
-                    }
-                    else
-                        this.Invoke(new Action(() =>
-                        {
-                            checkBox7.Enabled = false;
-                        }));
+								if (button4.Enabled)
+								{
+									ActivateSettings();
+								}
+							}));
+						}
+						else
+							this.Invoke(new Action(() =>
+							{
+								checkBox7.Enabled = false;
+							}));
 
-                    Thread.Sleep(1000);
-                }
+						Thread.Sleep(1000);
+					}
 
-                prevDevicesCount = devicesCount;
+					prevDevicesCount = devicesCount;
 
-                if (devicesCount == 0)
-                    MessageBox.Show("Connect device(s) and restart the application.\nIf using two devices plug in the device used for near signal detection first.");
+					if (devicesCount == 0)
+					{
+						////MessageBox.Show("Connect device(s) and restart the application.\nIf using two devices plug in the device used for near signal detection first.");
+						DialogResult result = MessageBox.Show("Connect device(s) and continue.\nIf using two devices plug in the device used for near signal detection first.", "", MessageBoxButtons.RetryCancel);
+
+						if (result == DialogResult.Cancel)
+							break;
+					}
+				}
             });
 
             mainForm.WindowState = FormWindowState.Maximized;
