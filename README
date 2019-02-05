@@ -1,5 +1,6 @@
 RTL SDR Spectrum Analyzer for Detection of Reradiated and Emitted Radio and Microwave Energy from Humans
--------------------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------
+
 
 Reradiated or emitted radio or microwave energy can be detected based on the fact that there should be an increase in signal strength when you're near the antenna.
 
@@ -89,5 +90,4 @@ http://bit.do/rtlsdr_spectrum_analyzer_userguide
 
 You should also read this research paper/thesis for more details on how to use the rtl sdr spectrum analyzer and how I detected the signal that I mentioned:
 
-http://bit.do/detection
-
+https://drive.google.com/open?id=13wX8O4iqdy88WMnNP0QvVjPmfYBROFxf
