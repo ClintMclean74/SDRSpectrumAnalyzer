@@ -2,8 +2,19 @@
 /*
 * Author: Clint Mclean
 *
-* RTLSpectrumAnalyzerGUI turns a RTL2832 based DVB dongle into a spectrum analyzer
+* RTL SDR SpectrumAnalyzer turns a RTL2832 based DVB dongle into a spectrum analyzer
 * 
+* This spectrum analyzer, though, is specifically designed for detecting reradiated
+* signals from humans. These are frequencies that are transmitted and could have intentional
+* and unintentional biological effects.
+* 
+* The signals generate electrical currents in humans, and could have biological effects
+* because of our electrochemical systems that use biologically generated electrical currents.
+* 
+* These radio/microwaves are reradiated, the electrical currents that are produced generate
+* another reradiated electromagnetic wave. So they are detectable.
+* 
+* This rtl sdr spectrum analyzer then is designed for automatically detecting these reradiated signals.
 * 
 * Uses RTLSDRDevice.DLL for doing the frequency scans
 * which makes use of the librtlsdr library: https://github.com/steve-m/librtlsdr
