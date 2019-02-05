@@ -86,7 +86,7 @@ So the code for libusb-1.0.dll and rtlsdr.dll is available from there if you req
 
 Here's the user guide described here also with images:
 
-http://bit.do/rtlsdr_spectrum_analyzer_userguide
+https://drive.google.com/open?id=1Sc6_Tbxux-O5aAFY-gAXCkrgMpNiRkjv&fbclid=IwAR2ktx2dDmgUX8CeoNUnBmmzYwdr6OMHwQbpX10gseqPXcWQTDCFnjCIk3k
 
 You should also read this research paper/thesis for more details on how to use the rtl sdr spectrum analyzer and how I detected the signal that I mentioned:
 
