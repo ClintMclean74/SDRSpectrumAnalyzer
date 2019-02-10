@@ -4588,7 +4588,7 @@ namespace RTLSpectrumAnalyzerGUI
         {
             InitializeComponent();
 
-            if (Properties.Settings.Default.DontShowInfoBoxes!=null)
+            ////if (Properties.Settings.Default.DontShowInfoBoxes!=null)
                 Properties.Settings.Default.DontShowInfoBoxes = new int[10];
 
             _form_resize = new clsResize(this);
