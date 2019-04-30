@@ -4593,9 +4593,11 @@ namespace RTLSpectrumAnalyzerGUI
 
             _form_resize = new clsResize(this);
 
-            _form_resize.SetFormsInitialSize(new Size(1920, 1080));
+			////_form_resize.SetFormsInitialSize(new Size(1920, 1080));
 
-            _form_resize.StoreControlsInitialSizes();
+			_form_resize.SetFormsInitialSize(new Size(1360, 768));
+
+			_form_resize.StoreControlsInitialSizes();
 
             mainForm = this;
 

@@ -1,6 +1,13 @@
 RTL SDR Spectrum Analyzer for Detection of Reradiated and Emitted Radio and Microwave Energy from Humans
 --------------------------------------------------------------------------------------------------------
 
+User Guide
+----------
+
+Here's the user guide described here with images:
+
+https://drive.google.com/open?id=1Sc6_Tbxux-O5aAFY-gAXCkrgMpNiRkjv&fbclid=IwAR2ktx2dDmgUX8CeoNUnBmmzYwdr6OMHwQbpX10gseqPXcWQTDCFnjCIk3k
+
 
 Reradiated or emitted radio or microwave energy can be detected based on the fact that there should be an increase in signal strength when you're near the antenna.
 
@@ -70,21 +77,17 @@ If you use this system sufficiently you should at the very least detect a reradi
 Finding your reradiated frequency range could be very important for determining how that frequency range is being used and whether there are transmissions that could be causing unintentional (electrosensitivity) or intentional biological effects.
 
 
-Installation
-------------
+Installation Instructions
+-------------------------
 
-You need to have the Visual C++ Redistributable Packages for Visual Studio 2013 from Microsoft found here:
-
-http://www.microsoft.com/en-us/download/details.aspx?id=40784
-
-Use the x86 version for 32 bit systems, even if you've got a 64 bit system, since the code is compiled for 32 bit.
-
-It will work on 64 bit systems so just download vcredist_x86.exe
-
-
-If you haven't already installed the dongle follow this guide here:
+You need to install the rtl sdr dongle according to this guide:
 
 http://www.rtl-sdr.com/tag/zadig/
+
+
+If you get a "the specified module could not be found" error then you probably also need the Microsoft Visual C++ 2010 Redistributable Package (x86):
+
+http://www.microsoft.com/download/en/details.aspx?id=5555
 
 
 If you need to buy the dongle I would also recommend
@@ -92,21 +95,15 @@ If you need to buy the dongle I would also recommend
 www.rtl-sdr.com
 
 
-User Guide
-----------
 
-Here's the user guide described here also with images:
-
-https://drive.google.com/open?id=1Sc6_Tbxux-O5aAFY-gAXCkrgMpNiRkjv&fbclid=IwAR2ktx2dDmgUX8CeoNUnBmmzYwdr6OMHwQbpX10gseqPXcWQTDCFnjCIk3k
+Additional Information
+----------------------
 
 You should also read this research paper/thesis for more details on how to use the rtl sdr spectrum analyzer and how I detected the signal that I mentioned:
 
 https://drive.google.com/open?id=13wX8O4iqdy88WMnNP0QvVjPmfYBROFxf
 
-
-Additional Information
-----------------------
-
+ 
 The code uses the librtlsdr library to transfer data from the device:
 
 https://github.com/steve-m/librtlsdr
@@ -120,4 +117,3 @@ The libusb library code is also used to communicate with the device using USB:
 https://github.com/libusb/libusb
 
 So the code for libusb-1.0.dll and rtlsdr.dll is available from there if you require it.
-

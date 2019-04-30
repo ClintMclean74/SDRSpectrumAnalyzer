@@ -88,13 +88,13 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;RTLSDRDEVICE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader />
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>rtlsdr.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>rtlsdr.lib</AdditionalDependencies>
       <OutputFile>..\..\Build\$(ProjectName).dll</OutputFile>
       <ModuleDefinitionFile>RTLSDRDevice.def</ModuleDefinitionFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>

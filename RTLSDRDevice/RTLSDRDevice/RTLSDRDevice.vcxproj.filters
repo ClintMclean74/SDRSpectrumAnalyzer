@@ -15,10 +15,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="convenience.cpp">
+    <ClCompile Include="RTLSDRDevice.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="RTLSDRDevice.cpp">
+    <ClCompile Include="convenience.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
