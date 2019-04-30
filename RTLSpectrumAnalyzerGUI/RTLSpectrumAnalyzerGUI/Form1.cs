@@ -4595,7 +4595,9 @@ namespace RTLSpectrumAnalyzerGUI
 
 			////_form_resize.SetFormsInitialSize(new Size(1920, 1080));
 
-			_form_resize.SetFormsInitialSize(new Size(1360, 768));
+			Rectangle resolution = Screen.PrimaryScreen.Bounds;
+
+			_form_resize.SetFormsInitialSize(new Size(resolution.Width, resolution.Height));
 
 			_form_resize.StoreControlsInitialSizes();
 
