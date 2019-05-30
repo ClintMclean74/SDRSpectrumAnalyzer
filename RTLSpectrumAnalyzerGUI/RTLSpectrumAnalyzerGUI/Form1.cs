@@ -4595,8 +4595,10 @@ namespace RTLSpectrumAnalyzerGUI
 
 			/////////_form_resize.SetFormsInitialSize(new Size(1920, 1080));
 
-			_form_resize.SetFormsInitialSize(new Size(1450,900));
-			
+			//////////_form_resize.SetFormsInitialSize(new Size(1450,900));
+
+			_form_resize.SetFormsInitialSize(new Size(1575, 1000));
+
 
 			////string screenWidth = System.Windows.SystemParameters.PrimaryScreenWidth.ToString();
 
